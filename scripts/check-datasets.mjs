@@ -57,17 +57,17 @@ const sameRoles = (a, b) => {
     b[k] && a[k].name === b[k].name && (a[k].nth ?? 0) === (b[k].nth ?? 0));
 };
 const mine = await insertDataset(sql, {
-  ...base, id: 'aaa1', listed: true, ownerToken: '', roles: ROLES_AT_IMPORT,
+  ...base, id: 'aaa1', listed: true, roles: ROLES_AT_IMPORT,
 });
 check(sameRoles(mine.roles, ROLES_AT_IMPORT), 'roles round-trip as jsonb');
-const theirsShared = await insertDataset(sql, {
-  ...base, id: 'bbb2', title: 'Autocross practice', uploader: THEM, listed: true, ownerToken: '',
+const theirs = await insertDataset(sql, {
+  ...base, id: 'bbb2', title: 'Autocross practice', uploader: THEM, listed: true,
 });
 await insertDataset(sql, {
-  ...base, id: 'ccc3', title: 'Scratch run', uploader: THEM, listed: false, ownerToken: '',
+  ...base, id: 'ccc3', title: 'Scratch run', uploader: THEM, listed: false,
 });
 await insertDataset(sql, {
-  ...base, id: 'ddd4', title: 'My rough run', listed: false, ownerToken: '',
+  ...base, id: 'ddd4', title: 'My rough run', listed: false,
 });
 
 check(mine.id === 'aaa1' && mine.title === 'Michigan endurance', 'insert returns the row');
@@ -89,8 +89,8 @@ check(forMe[0].created_at >= forMe[forMe.length - 1].created_at, 'newest first')
 
 const dto = rowToDataset(mine, ME);
 check(dto.mine === true, 'rowToDataset marks my own session');
-check(rowToDataset(theirsShared, ME).mine === false, "and does not mark someone else's");
-check(!('owner_token' in dto) && !('ownerToken' in dto), 'the legacy owner token is never sent to the browser');
+check(rowToDataset(theirs, ME).mine === false, "and does not mark someone else's");
+check(!('owner_token' in dto) && !('ownerToken' in dto), 'the retired owner token never reaches the browser');
 check(dto.csvBytes === 83021163 && typeof dto.csvBytes === 'number', 'byte counts reach the browser as numbers');
 
 const patched = await updateDataset(sql, 'aaa1', {
@@ -101,6 +101,13 @@ const patched = await updateDataset(sql, 'aaa1', {
 check(sameRoles(patched.roles, ROLES_AT_IMPORT),
   'a lap-count writeback does not clear the roles settled at import');
 check(patched.uploader === ME, 'editing a session does not reassign its credit');
+/* Editing is open to anyone signed in, but the credit on a session is not a permission
+   and must survive being edited by someone else. */
+const byOther = await updateDataset(sql, 'bbb2', {
+  title: 'Autocross practice — retitled by a teammate',
+  description: '', uploader: theirs.uploader, listed: true, laps: 7, roles: null,
+});
+check(byOther.uploader === THEM, "a teammate's edit leaves the original uploader credited");
 check(patched.title.endsWith('rear brake test'), 'update changes the title');
 check(patched.listed === false, 'update can unshare a session');
 check(patched.laps === 22, 'the viewer can fill in the lap count later');
@@ -113,7 +120,7 @@ check((await getDataset(sql, 'nope')) === null, 'a missing id reads as null, not
 /* The unique id the route mints has to actually fit the column. */
 const wide = await insertDataset(sql, {
   ...base, id: crypto.randomUUID().replace(/-/g, '').slice(0, 16),
-  listed: true, ownerToken: '',
+  listed: true,
   description: 'x'.repeat(2000), title: 'y'.repeat(200),
 });
 check(wide.description.length === 2000 && wide.title.length === 200, 'the longest allowed text fits');

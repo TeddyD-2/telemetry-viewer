@@ -31,15 +31,18 @@ export async function GET(_req, { params }){
   return NextResponse.json({ dataset: rowToDataset(row, await currentUser()) });
 }
 
-/* Editing and deleting belong to the person credited with the upload, not to anyone
-   holding the site password -- a library where a mis-click retitles or bins someone
-   else's run is a library nobody trusts. Signing in under another name is possible and
-   not defended against: this stops accidents, not impersonation.
+/* Anyone signed in can edit or delete anything.
 
-   `owner_token` is the older browser-bound scheme, still honoured so anything uploaded
-   before names existed stays editable by the browser that uploaded it. */
-const isOwner = (row, me, token) =>
-  (!!me && me === row.uploader) || (!!token && !!row.owner_token && token === row.owner_token);
+   This started out restricted to whoever uploaded a session, on the reasoning that a
+   library where a mis-click bins someone else's run is a library nobody trusts. But the
+   whole site sits behind one shared password: everybody past it is already a teammate
+   with full read access and the ability to upload. Making them chase down whoever
+   happened to press the button first, to fix a typo'd title, is friction that buys
+   nothing -- the person who wants to fix it and the person who uploaded it are on the
+   same team either way.
+
+   The uploader is still recorded, and still shown. It is attribution, not permission. */
+const canEdit = me => !!me;
 
 export async function PATCH(req, { params }){
   const bad = configError(); if (bad) return bad;
@@ -49,9 +52,7 @@ export async function PATCH(req, { params }){
 
   const b = await req.json().catch(() => ({}));
   const me = await currentUser();
-  if (!isOwner(row, me, b.ownerToken)){
-    return NextResponse.json({ error: 'only the uploader can change this session' }, { status: 403 });
-  }
+  if (!canEdit(me)) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
 
   const title = b.title === undefined ? row.title : String(b.title).trim().slice(0, 200);
   if (!title) return NextResponse.json({ error: 'a title is required' }, { status: 400 });
@@ -78,8 +79,8 @@ export async function DELETE(req, { params }){
   const row = await load(id);
   if (!row) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
-  if (!isOwner(row, await currentUser(), req.nextUrl.searchParams.get('ownerToken'))){
-    return NextResponse.json({ error: 'only the uploader can delete this session' }, { status: 403 });
+  if (!canEdit(await currentUser())){
+    return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   }
 
   /* Drop the row first. If the blob delete then fails we have leaked two files, which

@@ -43,7 +43,7 @@ export default function StoredSession({ dataset }){
   /* Sessions uploaded before roles were stored still ask everyone who opens them. Once
      the person who uploaded it has answered, they can put the answer on the session so
      the next person is not asked at all. */
-  const canSaveRoles = mine && live && live.unanswered.length === 0
+  const canSaveRoles = live && live.unanswered.length === 0
     && !sameRoles(live.roles, d.roles);
 
   async function saveRoles(){
@@ -57,7 +57,7 @@ export default function StoredSession({ dataset }){
   }
 
   useEffect(() => {
-    if (!detected || !mine || patched.current) return;
+    if (!detected || patched.current) return;
     if (detected.laps === d.laps) return;
     patched.current = true;
     fetch(`/api/datasets/${d.id}`, {
@@ -65,7 +65,7 @@ export default function StoredSession({ dataset }){
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ laps: detected.laps }),
     }).then(r => r.json()).then(b => b.dataset && setD(b.dataset)).catch(() => {});
-  }, [detected, mine, d.id, d.laps]);
+  }, [detected, d.id, d.laps]);
 
   return (
     <>
@@ -92,14 +92,14 @@ export default function StoredSession({ dataset }){
               Save channel choices
             </button>
           )}
-          {mine && <button className="btn" onClick={() => setEditing(true)}>Edit details</button>}
+          <button className="btn" onClick={() => setEditing(true)}>Edit details</button>
           <a className="btn" href={d.csvUrl} download={d.csvName || 'session.csv'}
              title={`Download the original CSV (${fmtBytes(d.csvBytes)})`}>CSV</a>
         </>}
       />
 
       {editing && (
-        <EditPanel d={d} onClose={() => setEditing(false)}
+        <EditPanel d={d} mine={mine} onClose={() => setEditing(false)}
                    onSaved={next => { setD(next); setEditing(false); }} />
       )}
     </>
@@ -116,7 +116,7 @@ function sameRoles(a, b){
 
 /* A dialog, not a panel that pushes the viewer down the page. Editing the title is a
    detour from reading the trace, and the trace should still be there when you look up. */
-function EditPanel({ d, onSaved, onClose }){
+function EditPanel({ d, mine, onSaved, onClose }){
   const router = useRouter();
   useEffect(() => {
     const esc = e => { if (e.key === 'Escape') onClose(); };
@@ -143,7 +143,12 @@ function EditPanel({ d, onSaved, onClose }){
   }
 
   async function remove(){
-    if (!confirm(`Delete "${d.title}"? The CSV and the cached copy go too, and this cannot be undone.`)) return;
+    /* Anyone can delete anything, so the one place to be careful is here: name whose
+       run it is when it is not yours, because that is the fact most likely to change
+       someone's mind halfway through the sentence. */
+    const whose = mine || !d.uploader ? '' : `, uploaded by ${d.uploader}`;
+    if (!confirm(`Delete "${d.title}"${whose}?\n\n`
+      + 'The CSV and the cached copy go with it. This cannot be undone.')) return;
     setBusy(true);
     const res = await fetch(`/api/datasets/${d.id}`, { method: 'DELETE' });
     if (res.ok){ router.push('/'); return; }

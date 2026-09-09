@@ -64,7 +64,6 @@ export async function POST(req){
     description: str(b.description, 2000),
     uploader: me,
     listed: !!b.listed,
-    ownerToken: '',
     csvUrl: b.csvUrl,
     csvName: str(b.csvName, 200),
     csvBytes: int(b.csvBytes) || 0,

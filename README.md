@@ -87,10 +87,14 @@ at 20 Hz), but nothing in it is specific to that file.
   person, but understand that it is not a security boundary: blob URLs are unguessable, not
   access-controlled.
 - **No accounts, but names.** One password for the whole site, then you pick who you are
-  from the roster. Uploads are credited to whoever is signed in, your own unlisted sessions
-  follow you to any browser, and nobody else can retitle or delete a session they did not
-  add. Signing in as someone else is possible and not defended against — it stops accidents,
-  not impersonation.
+  from the roster. Uploads are credited to whoever is signed in, and your own unlisted
+  sessions follow you to any browser.
+
+  **Anyone signed in can edit or delete anything.** Everyone past the password is already a
+  teammate who can read every session and upload more; making them track down whoever
+  pressed the button first to fix a typo'd title buys nothing. The uploader is recorded and
+  shown, but that is attribution, not permission — and it survives someone else editing the
+  session. Deleting still asks, and names whose run it is when it is not yours.
 
 Small things that make it less painful than RS3: 48 of the 226 channels in this file never
 change value, and they're hidden by default; channels are grouped and searchable; the lap table
