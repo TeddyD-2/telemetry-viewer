@@ -19,7 +19,9 @@ at 20 Hz), but nothing in it is specific to that file.
 
 - **Laps, automatically.** No beacon channel needed — laps come from the GPS trace. 22 timed
   laps found on the Michigan run, best 1:03.15, with the 4:42 driver change correctly flagged
-  as an outlier rather than counted as a lap. Click a lap to zoom to it, tick it to overlay it.
+  as an outlier rather than counted as a lap. It is not tuned to that track: `npm run
+  check:laps` runs it over skidpad-length laps (4.3 s) through to a long circuit (90 s), from
+  2 laps to 40, at 5–50 Hz, plus a figure-eight that crosses itself. Click a lap to zoom to it, tick it to overlay it.
   If it picks the wrong start/finish, click anywhere on the trace in **Track** to move the line
   and everything re-times.
 - **Traces.** Up to 8 channels, tiled two-up by default, drawn with
@@ -117,11 +119,15 @@ variables are set the library page says which ones are missing rather than throw
 
 ```bash
 npm run dev              # http://localhost:3000
-npm run check            # database queries + session-cache round trip
+npm run check            # everything below
+npm run check:db         # the library's SQL, against an in-process Postgres
+npm run check:laps       # lap detection, on real and synthetic sessions
+npm run check:cache      # session cache round trip, sample by sample
 ```
 
-`npm run check` runs the SQL against an in-process Postgres and round-trips a real session
-through the cache format, so both can be exercised without provisioning anything.
+None of these need a database, a blob store or a network — the SQL runs against Postgres
+compiled to WASM, and the lap and cache checks run against `data/endurance.csv` plus
+generated tracks. They cover the three places where being wrong is silent rather than loud.
 
 ## Notes on the data
 
