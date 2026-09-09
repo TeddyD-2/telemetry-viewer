@@ -61,8 +61,9 @@ input[type=search],input[type=text],select{background:var(--surface-2);border:1p
 /* ---------- sidebar panels ---------- */
 .panel{border-bottom:1px solid var(--line);display:flex;flex-direction:column;min-height:0;
   overflow:hidden}
-/* The list the current mode is built around always keeps enough room to be a list. */
+/* An open list keeps enough room to be a list; a collapsed panel is just its header. */
 .panel.chanpanel{min-height:190px}
+.role.needs label{color:var(--ink-2)}
 .panel>h3{margin:0;padding:9px 12px;font-size:11px;font-weight:600;letter-spacing:.8px;
   text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:8px}
 .panel>h3 .n{color:var(--ink-3);font-weight:400;text-transform:none;letter-spacing:0}

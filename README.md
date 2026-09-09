@@ -39,17 +39,24 @@ at 20 Hz), but nothing in it is specific to that file.
 - **Track.** GPS map coloured by any channel, cursor linked to every other view.
 - **Analysis.** g–g diagram, histogram, and min/max/mean/SD over whatever window is in view.
 - **Export** the current view as PNG, or the visible window and selected channels as CSV.
-- **A sidebar that follows the view.** Traces needs a channel multi-select; Track needs
-  exactly one channel; Compare needs a channel, a reference lap and some laps ticked. Each
-  mode gets the picker it actually needs, at full sidebar width and searchable, instead of
-  every mode getting all of them and the choice that matters hiding in a 260 px dropdown.
-- **Channel roles.** Speed, latitude, longitude, distance and the two g channels are guessed
-  from names once. Nothing is re-guessed per view, so lap detection, the distance axis and
-  the cursor readout always agree. The panel stays collapsed while the guesses hold — on a
-  clean export there is nothing to do in it — and opens itself when a role is unset or a
-  name is ambiguous. Every picker lists unit and observed range next to the name, and
-  same-named channels get a `#1`/`#2` suffix, so a live `GPS Speed` and a dead one are never
-  confused for each other.
+- **A sidebar that follows the view.** Every panel collapses, and each mode opens only the
+  one it is about: Traces is a channel picker and nothing else, Compare is laps and one
+  channel, Track and Analysis each want a single channel. The rest stay in the column one
+  click away rather than crowding the one that matters. Traces starts with nothing plotted
+  — no five channels are right for everyone, and picking some just means clearing them.
+- **Channel roles.** Speed, latitude, longitude, distance and the two g channels are matched
+  by name once. Nothing is re-guessed per view, so lap detection, the distance axis and the
+  cursor readout always agree. The panel stays collapsed while the matching holds — on a
+  clean export there is nothing to do in it — and opens itself when a role is unset or
+  ambiguous.
+
+  **Where two channels match equally well, the viewer does not choose.** One Michigan export
+  carries two live channels both called `GPS Speed`, one peaking at 79 km/h and one at 284.
+  Any tie-break — widest range, first column, closest to the GPS track — is the viewer
+  quietly deciding which of the team's channels is real, and every lap time hangs off that.
+  So the role resolves to nothing and asks. Every picker lists unit and observed range next
+  to the name, and same-named channels get a `#1`/`#2` suffix, which is usually all it takes
+  to tell them apart.
 
 ### The shared library
 
