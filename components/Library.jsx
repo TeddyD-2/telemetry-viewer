@@ -87,7 +87,12 @@ function Card({ d }){
       <div className="acts">
         <Link className="btn primary" href={`/view/${d.id}`}>Open</Link>
         <a className="btn" href={d.csvUrl} download={d.csvName || 'session.csv'}>Download CSV</a>
-        {mine && <Link className="btn" href={`/view/${d.id}?edit=1`}>Edit details</Link>}
+        {mine && (
+          <Link className="btn" href={`/view/${d.id}?edit=1`}
+                title="Open this session with the details dialog already up">
+            Edit details
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -10,6 +10,19 @@ export default function StoredSession({ dataset }){
   const [d, setD] = useState(dataset);
   const [mine, setMine] = useState(dataset.mine);
   const [editing, setEditing] = useState(false);
+
+  /* The library card links here with ?edit=1 to jump straight to the details dialog.
+     Without this the parameter did nothing, so that button and Open were the same
+     button wearing different labels. The parameter is cleared once it has been acted
+     on, so a refresh does not reopen a dialog the user closed. */
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get('edit') !== '1') return;
+    setEditing(true);
+    q.delete('edit');
+    const rest = q.toString();
+    window.history.replaceState({}, '', window.location.pathname + (rest ? `?${rest}` : ''));
+  }, []);
   const patched = useRef(false);
 
   /* Lap detection needs the whole session in memory, which the upload page does not
