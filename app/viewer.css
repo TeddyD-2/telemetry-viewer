@@ -281,6 +281,10 @@ button.btn.danger:hover{background:#2a1417;border-color:var(--brand)}
 #top>*{align-self:center}
 #top .acts .btn,#top .acts>span{display:inline-flex;align-items:center;height:28px;
   line-height:1}
+/* A display rule beats the hidden attribute, so anything given one has to opt back
+   out -- otherwise `hidden` silently stops working on exactly the elements that were
+   styled most carefully. */
+#top .acts [hidden],#bar [hidden],.menu [hidden]{display:none}
 #top .acts .btn{padding:0 11px}
 #top .back{display:inline-flex;align-items:center;justify-content:center;height:28px;
   width:28px;padding:0}
