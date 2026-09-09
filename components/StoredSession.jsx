@@ -56,40 +56,35 @@ export default function StoredSession({ dataset }){
 
   return (
     <>
-      <div className="viewbar">
-        <Link href="/">← Library</Link>
-        <span style={{ color: 'var(--ink-3)' }}>
-          {d.uploader ? `uploaded by ${d.uploader}` : 'uploaded'}
-          {d.listed ? '' : ' · unlisted'}
-        </span>
-        <div className="sp" />
-        {savedRoles && <span style={{ color: '#7fd4ae' }}>channel choices saved</span>}
-        {canSaveRoles && (
-          <button className="btn primary" onClick={saveRoles}
-                  title="Store these channel roles on the session so nobody else is asked">
-            Save channel choices
-          </button>
-        )}
-        {mine && (
-          <button className="btn" onClick={() => setEditing(v => !v)}>
-            {editing ? 'Close' : 'Edit details'}
-          </button>
-        )}
-        <a className="btn" href={d.csvUrl} download={d.csvName || 'session.csv'}>
-          CSV ({fmtBytes(d.csvBytes)})
-        </a>
-      </div>
-
-      {editing && (
-        <EditPanel d={d} onSaved={next => { setD(next); setEditing(false); }} />
-      )}
-
       <Viewer
         source={{ kind: 'stored', binUrl: d.binUrl, title: d.title }}
         title={d.title}
         roles={d.roles}
         onLoad={onLoad}
+        showOpen={false}
+        back={<Link className="back" href="/" title="Back to the library">←</Link>}
+        actions={<>
+          <span className="by">
+            {d.uploader ? d.uploader : 'uploaded'}{d.listed ? '' : ' · unlisted'}
+          </span>
+          {savedRoles && <span className="saved">channels saved</span>}
+          {canSaveRoles && (
+            <button className="btn primary" onClick={saveRoles}
+                    title="Store these channel roles on the session so nobody else is asked">
+              Save channel choices
+            </button>
+          )}
+          {mine && <button className="btn" onClick={() => setEditing(true)}>Edit details</button>}
+          <a className="btn" href={d.csvUrl} download={d.csvName || 'session.csv'}>
+            CSV <span className="sz">{fmtBytes(d.csvBytes)}</span>
+          </a>
+        </>}
       />
+
+      {editing && (
+        <EditPanel d={d} onClose={() => setEditing(false)}
+                   onSaved={next => { setD(next); setEditing(false); }} />
+      )}
     </>
   );
 }
@@ -102,8 +97,15 @@ function sameRoles(a, b){
     b[k] && a[k].name === b[k].name && (a[k].nth ?? 0) === (b[k].nth ?? 0));
 }
 
-function EditPanel({ d, onSaved }){
+/* A dialog, not a panel that pushes the viewer down the page. Editing the title is a
+   detour from reading the trace, and the trace should still be there when you look up. */
+function EditPanel({ d, onSaved, onClose }){
   const router = useRouter();
+  useEffect(() => {
+    const esc = e => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', esc);
+    return () => window.removeEventListener('keydown', esc);
+  }, [onClose]);
   const [title, setTitle] = useState(d.title);
   const [description, setDescription] = useState(d.description || '');
   const [listed, setListed] = useState(d.listed);
@@ -134,8 +136,13 @@ function EditPanel({ d, onSaved }){
   }
 
   return (
-    <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--line)', padding: '14px 22px' }}>
-      <div className="form" style={{ gap: 12 }}>
+    <div className="modal-back" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="modal" role="dialog" aria-modal="true" aria-label="Session details">
+        <div className="modal-hd">
+          <b>Session details</b>
+          <button className="x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <div className="form" style={{ gap: 12 }}>
         {error && <div className="err">{error}</div>}
         <div className="field">
           <label htmlFor="e-title">Title</label>
@@ -154,8 +161,10 @@ function EditPanel({ d, onSaved }){
         </label>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn primary" onClick={save} disabled={busy || !title.trim()}>Save</button>
+          <button className="btn" onClick={onClose} disabled={busy}>Cancel</button>
           <div className="sp" style={{ flex: 1 }} />
-          <button className="btn" onClick={remove} disabled={busy}>Delete session</button>
+          <button className="btn danger" onClick={remove} disabled={busy}>Delete session</button>
+        </div>
         </div>
       </div>
     </div>

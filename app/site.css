@@ -101,8 +101,3 @@ table.setup code{font-family:var(--mono);color:var(--ink)}
 .login img{height:30px;width:auto;margin:0 auto 6px}
 .login input{text-align:center}
 
-/* ---------- viewer page chrome ---------- */
-.viewbar{display:flex;align-items:center;gap:12px;padding:6px 14px;background:var(--surface);
-  border-bottom:1px solid var(--line);flex:none;font-size:12px}
-.viewbar .sp{flex:1}
-.viewbar a{color:var(--ink-2)}

@@ -12,7 +12,13 @@ import { fetchParsed } from '../lib/viewer/binary.js';
      {kind:'local'}                     wait for a drop or the file picker
      {kind:'stored', binUrl, title}     download a parsed session and open it
      {kind:'handoff'}                   opened elsewhere; onMount hands the session over  */
-export default function Viewer({ source = { kind: 'local' }, title, roles, onLoad, onMount }){
+export default function Viewer({
+  source = { kind: 'local' }, title, roles, onLoad, onMount,
+  /* The page owns what sits at each end of the bar: where 'back' goes, and which
+     actions this session has. The middle -- name, metadata, live cursor readout --
+     belongs to the viewer, which is the only thing that knows it. */
+  back, actions, showOpen = true,
+}){
   const rootRef = useRef(null);
 
   useEffect(() => {
@@ -54,15 +60,19 @@ export default function Viewer({ source = { kind: 'local' }, title, roles, onLoa
   return (
     <div className="viewer-root" ref={rootRef}>
       <div id="top">
+        {back}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img id="logo" src="/logo.webp" alt="Cornell Racing" />
-        <div>
+        <div className="who">
           <div id="sessname">{title || 'Telemetry Viewer'}</div>
           <div id="sessmeta">no session loaded</div>
         </div>
         <div className="sp" />
-        <div id="cursorout" style={{ fontFamily: 'var(--mono)', fontSize: '11.5px', color: 'var(--ink-2)' }} />
-        <button id="loadbtn">Open CSV&hellip;</button>
+        <div id="cursorout" />
+        <div className="acts">
+          {actions}
+          <button id="loadbtn" className="btn" hidden={!showOpen}>Open CSV&hellip;</button>
+        </div>
         <input type="file" id="file" accept=".csv" hidden />
       </div>
 

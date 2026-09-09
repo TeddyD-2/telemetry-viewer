@@ -35,12 +35,28 @@ input[type=search],input[type=text],select{background:var(--surface-2);border:1p
 ::-webkit-scrollbar-track{background:transparent}
 
 /* ---------- shell ---------- */
-#top{display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--surface);
-  border-bottom:1px solid var(--line);flex:none}
-#logo{height:26px;width:auto;display:block}
-#sessname{font-weight:600;letter-spacing:.2px}
-#sessmeta{color:var(--ink-3);font-size:11px}
-#top .sp{flex:1}
+/* One bar. It used to be two -- the viewer's own header with the session name and the
+   live readout, and a second strip above it with the page's buttons -- which cost 40 px
+   of chart height and split "what am I looking at" from "what can I do with it". */
+#top{display:flex;align-items:center;gap:13px;padding:7px 14px;background:var(--surface);
+  border-bottom:1px solid var(--line);flex:none;min-height:46px}
+#logo{height:24px;width:auto;display:block;flex:none}
+#top .who{min-width:0}
+#sessname{font-weight:600;letter-spacing:.2px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+#sessmeta{color:var(--ink-3);font-size:11px;white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis}
+#top .sp{flex:1;min-width:8px}
+#cursorout{font-family:var(--mono);font-size:11.5px;color:var(--ink-2);white-space:nowrap;
+  flex:none}
+#top .acts{display:flex;align-items:center;gap:8px;flex:none}
+#top .acts .by{color:var(--ink-3);font-size:11.5px;white-space:nowrap}
+#top .acts .saved{color:#7fd4ae;font-size:11.5px;white-space:nowrap}
+#top .acts .sz{color:var(--ink-3);font-family:var(--mono);font-size:10.5px}
+#top .back{color:var(--ink-2);text-decoration:none;font-size:17px;line-height:1;
+  padding:2px 6px;border-radius:6px;flex:none}
+#top .back:hover{background:var(--surface-2);color:var(--ink)}
+@media (max-width:1100px){ #cursorout{display:none} }
 #main{flex:1;display:flex;min-height:0}
 /* On a short window the panels cannot all have their natural height. They used to
    overflow their own box and paint over each other; now each one clips and the column
@@ -216,3 +232,22 @@ kbd{background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
 button.linky{background:none;border:0;color:var(--s1);cursor:pointer;padding:0;
   font:inherit;text-decoration:underline}
 .field .warn{color:var(--brand)}
+
+
+/* ---------- modal ------------------------------------------------------------------
+   Editing a title is a detour from reading the trace. A dialog leaves the trace where
+   it was; the dropdown panel this replaced pushed the whole viewer down the page. */
+.modal-back{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:50;
+  display:flex;align-items:flex-start;justify-content:center;padding:8vh 20px 20px;
+  backdrop-filter:blur(2px)}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 18px 50px rgba(0,0,0,.5);width:min(560px,100%);max-height:80vh;
+  overflow:auto;padding:16px 18px 18px}
+.modal-hd{display:flex;align-items:center;margin:0 0 14px}
+.modal-hd b{font-size:14px}
+.modal-hd .x{margin-left:auto;background:none;border:0;color:var(--ink-3);cursor:pointer;
+  font-size:20px;line-height:1;padding:0 4px}
+.modal-hd .x:hover{color:var(--ink)}
+.modal .form{max-width:none}
+button.btn.danger{color:#f0b7c0;border-color:var(--brand-dim)}
+button.btn.danger:hover{background:#2a1417;border-color:var(--brand)}
