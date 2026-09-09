@@ -1,4 +1,22 @@
+# python
 __pycache__/
 *.pyc
 .venv/
+
 .DS_Store
+
+# next
+/node_modules
+/.next
+/out
+
+# vercel
+.vercel
+.env*
+!.env.example
+
+# agent skills vendored in by `vercel install neon` -- regenerate with that command
+# rather than tracking third-party reference docs in the repo
+.agents/
+.claude/skills/
+skills-lock.json

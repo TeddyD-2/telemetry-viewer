@@ -1,8 +1,16 @@
 # Telemetry viewer
 
-A data viewer for AiM CSV exports that isn't painful. `index.html` is the whole thing: open it
-in a browser, drop a CSV on it, done. No server, no install, no build step, nothing uploaded —
-the file is parsed and plotted in your own browser, so session data never leaves the machine.
+A data viewer for AiM CSV exports that isn't painful, plus a shared library so the team can
+find each other's sessions instead of mailing 80 MB files around.
+
+Two ways in, and they are deliberately separate:
+
+- **`/local`** — drop a CSV, work through it, nothing is uploaded. Parsing and plotting happen
+  in your browser; the file never leaves your machine. This works even if nothing else is
+  configured.
+- **`/`** — the library. Sessions somebody chose to share, with a title, notes and who
+  uploaded them. Opening one downloads a compact cached copy rather than the CSV, so a
+  30-minute endurance run opens in seconds instead of a minute.
 
 Built against `data/endurance.csv` (Michigan 2026, arg26, 30:23, 226 channels, 36 460 samples
 at 20 Hz), but nothing in it is specific to that file.
@@ -29,10 +37,62 @@ at 20 Hz), but nothing in it is specific to that file.
 - **Track.** GPS map coloured by any channel, cursor linked to every other view.
 - **Analysis.** g–g diagram, histogram, and min/max/mean/SD over whatever window is in view.
 - **Export** the current view as PNG, or the visible window and selected channels as CSV.
+- **Channel roles.** Speed, latitude, longitude, distance and the two g channels are guessed
+  from names once, then shown in the sidebar and overridable from a dropdown. Nothing is
+  re-guessed per view, so lap detection, the distance axis and the cursor readout always
+  agree; a view whose role is unset offers the picker instead of drawing something wrong.
+  Every picker lists unit and observed range next to the name, and same-named channels get a
+  `#1`/`#2` suffix — a live `GPS Speed` and a dead one are never confused for each other.
+
+### The shared library
+
+- **Adding a session** parses the CSV in your browser first, which does two jobs: it proves the
+  file really is an AiM export before 80 MB goes over the paddock wifi, and it fills in the
+  title, car and driver from the session header so nobody retypes what the file already says.
+- **Two files are stored per session.** The original CSV, for anyone who wants it in RS3 or
+  Excel, and a compact binary of the parsed columns — 79 MB of CSV becomes 14 MB gzipped, and
+  opening it is a download rather than a download *and* a reparse. `npm run check:cache`
+  round-trips a real session through that format and compares every sample.
+- **Shared or unlisted.** Shared sessions are listed for everyone with the site password.
+  Unlisted ones are reachable by link only — useful for a rough run you want to send to one
+  person, but understand that it is not a security boundary: blob URLs are unguessable, not
+  access-controlled.
+- **No accounts.** One password for the whole site; uploaders pick their name from the team
+  roster. Your browser keeps a random token so your own unlisted sessions show up under
+  *My uploads*, and so nobody else can retitle or delete the session you just added.
 
 Small things that make it less painful than RS3: 48 of the 226 channels in this file never
 change value, and they're hidden by default; channels are grouped and searchable; the lap table
 shows delta-to-best inline; everything is keyboard- and wheel-driven.
+
+## Deploying
+
+```bash
+npm install
+vercel install neon      # Postgres for the session details
+vercel env pull          # brings DATABASE_URL into .env.local
+```
+
+Then in the Vercel dashboard: **Storage → Create → Blob** (this sets `BLOB_READ_WRITE_TOKEN`),
+and under **Settings → Environment Variables** add:
+
+| variable | what it is |
+|---|---|
+| `SITE_PASSWORD` | the one password the team types to get in |
+| `AUTH_SECRET` | any long random string; signs the session cookie |
+| `TEAM_MEMBERS` | comma-separated roster for the uploader dropdown |
+
+The `datasets` table is created on first use, so there is no migration step. Until the
+variables are set the library page says which ones are missing rather than throwing a 500, and
+`/local` keeps working throughout.
+
+```bash
+npm run dev              # http://localhost:3000
+npm run check            # database queries + session-cache round trip
+```
+
+`npm run check` runs the SQL against an in-process Postgres and round-trips a real session
+through the cache format, so both can be exercised without provisioning anything.
 
 ## Notes on the data
 

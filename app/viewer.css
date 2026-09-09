@@ -1,0 +1,132 @@
+:root{
+  --bg:#0e0e0d; --surface:#1a1a19; --surface-2:#232322; --line:#33332f;
+  --ink:#ffffff; --ink-2:#c3c2b7; --ink-3:#87867d;
+  --brand:#c8102e; --brand-dim:#7d1220;
+  /* categorical slots, dark steps - validated as a set against surface #1a1a19:
+     lightness band, chroma floor, adjacent CVD dE 8.4, normal-vision dE 19.3, contrast >=3:1 */
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500;
+  --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:13px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+/* The viewer owns a whole viewport and never scrolls as a page: its panes scroll
+   independently and the canvases are sized to whatever is left over. Pages that are
+   just documents (the library, upload, login) scroll the ordinary way.
+
+   The page is the flex column so a route can put its own bar above the viewer and have
+   the viewer take the remaining height rather than overflowing by that bar's height. */
+body:has(.viewer-root){height:100dvh;overflow:hidden;display:flex;flex-direction:column}
+.viewer-root{flex:1;min-height:0;display:flex;flex-direction:column}
+button,input,select{font:inherit;color:inherit}
+button{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;
+  padding:5px 10px;cursor:pointer}
+button:hover{background:#2c2c2a;border-color:#4a4a44}
+button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+button:disabled{opacity:.4;cursor:default}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+input[type=search],input[type=text],select{background:var(--surface-2);border:1px solid var(--line);
+  border-radius:6px;padding:5px 8px;width:100%}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#3a3a36;border-radius:5px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- shell ---------- */
+#top{display:flex;align-items:center;gap:14px;padding:8px 14px;background:var(--surface);
+  border-bottom:1px solid var(--line);flex:none}
+#logo{height:26px;width:auto;display:block}
+#sessname{font-weight:600;letter-spacing:.2px}
+#sessmeta{color:var(--ink-3);font-size:11px}
+#top .sp{flex:1}
+#main{flex:1;display:flex;min-height:0}
+#side{width:310px;flex:none;background:var(--surface);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0}
+#content{flex:1;display:flex;flex-direction:column;min-width:0}
+#bar{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);
+  background:var(--surface);flex:none;flex-wrap:wrap}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;padding:5px 11px;background:transparent}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--brand)}
+#view{flex:1;overflow:auto;min-height:0;padding:10px 12px}
+#strip{flex:none;height:64px;border-top:1px solid var(--line);background:var(--surface)}
+.lbl{color:var(--ink-3);font-size:11px;text-transform:uppercase;letter-spacing:.7px}
+
+/* ---------- sidebar panels ---------- */
+.panel{border-bottom:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.panel>h3{margin:0;padding:9px 12px;font-size:11px;font-weight:600;letter-spacing:.8px;
+  text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:8px}
+.panel>h3 .n{color:var(--ink-3);font-weight:400;text-transform:none;letter-spacing:0}
+.panel .body{overflow:auto;min-height:0}
+#lapwrap{max-height:31vh}
+#chanwrap{flex:1}
+/* Colour is set explicitly on tables rather than inherited. It has to be: a <table>
+   does not inherit colour in quirks mode, and this stylesheet started life in a
+   DOCTYPE-less single file. Next always emits one, so this is now belt and braces --
+   but the explicit colour is what the rest of the sheet is written against. */
+table.laps{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;
+  color:var(--ink-2)}
+table.laps th{position:sticky;top:0;background:var(--surface);color:var(--ink-3);font-weight:500;
+  text-align:right;padding:3px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;
+  border-bottom:1px solid var(--line)}
+table.laps th:first-child,table.laps td:first-child{text-align:left}
+table.laps td{padding:3px 8px;text-align:right;border-bottom:1px solid #232320;cursor:pointer}
+table.laps td:nth-child(2){color:var(--ink)}
+table.laps tr:hover td{background:var(--surface-2)}
+table.laps tr.sel td{background:#2a1418}
+table.laps tr.best td{color:#7ee787}
+table.laps tr.partial td{color:var(--ink-3);font-style:italic}
+table.laps .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;
+  vertical-align:middle}
+.grp{padding:5px 12px 3px;color:var(--ink-3);font-size:10px;letter-spacing:.7px;
+  text-transform:uppercase;background:#161615;position:sticky;top:0}
+.ch{display:flex;align-items:center;gap:7px;padding:3px 12px;cursor:pointer;font-size:12px}
+.ch:hover{background:var(--surface-2)}
+.ch .sw{width:9px;height:9px;border-radius:2px;background:#3a3a36;flex:none}
+.ch .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch .u{color:var(--ink-3);font-size:10px;font-family:var(--mono);flex:none}
+.ch.dead .nm{color:var(--ink-3)}
+.ch.on{background:#1e2836}
+.ctl{padding:8px 12px;display:flex;gap:6px;align-items:center}
+
+/* ---------- charts ---------- */
+.chart{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:8px;
+  margin-bottom:8px;overflow:hidden}
+.chart canvas{display:block;width:100%}
+.chart .hd{position:absolute;left:10px;top:6px;display:flex;align-items:center;gap:8px;
+  pointer-events:none;font-size:11.5px}
+.chart .hd .sw{width:9px;height:9px;border-radius:2px}
+.chart .hd .u{color:var(--ink-3);font-family:var(--mono);font-size:10.5px}
+.chart .val{position:absolute;right:10px;top:5px;font-family:var(--mono);font-size:12px;
+  pointer-events:none;color:var(--ink)}
+.chart .x{position:absolute;right:8px;top:5px;z-index:2;opacity:0;transition:.12s;
+  background:#2c2c2a;border:1px solid var(--line);border-radius:5px;width:20px;height:20px;
+  line-height:1;padding:0;color:var(--ink-3)}
+.chart:hover .x{opacity:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;
+  gap:16px;color:var(--ink-3);text-align:center}
+#drop{border:2px dashed var(--line);border-radius:14px;padding:38px 54px;transition:.15s}
+#drop.hot{border-color:var(--brand);background:#1d1213}
+#drop b{color:var(--ink);font-size:15px}
+#prog{width:340px;height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;display:none}
+#prog i{display:block;height:100%;width:0;background:var(--brand);transition:width .1s}
+kbd{font-family:var(--mono);font-size:10.5px;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:4px;padding:1px 5px}
+.stats{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11.5px;
+  color:var(--ink-2)}
+.stats th{text-align:right;color:var(--ink-3);font-weight:500;padding:3px 9px;font-size:10px;
+  text-transform:uppercase;border-bottom:1px solid var(--line)}
+.stats th:first-child,.stats td:first-child{text-align:left}
+.stats td{padding:3px 9px;text-align:right;border-bottom:1px solid #232320}
+.hint{color:var(--ink-3);font-size:11px;padding:4px 2px}
+.role{display:flex;align-items:center;gap:8px;margin:5px 0}
+.role label{flex:0 0 78px;color:var(--ink-3);font-size:11.5px}
+.role select{flex:1;min-width:0;font-size:11.5px;padding:3px 5px}
+.role .warn{color:var(--brand);font-weight:700}
+.rolefix{padding:22px 24px;max-width:560px}
+.rolefix b{display:block;margin-bottom:2px}
+.rolefix .role label{flex:0 0 96px}

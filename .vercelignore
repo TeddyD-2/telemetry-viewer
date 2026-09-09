@@ -1,0 +1,5 @@
+# The sample session is 83 MB and only the local check scripts read it. Without this
+# it rides along on every deploy, slowing each build for nothing.
+data/
+scripts/
+fit_speed_model.py

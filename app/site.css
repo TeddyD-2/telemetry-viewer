@@ -1,0 +1,102 @@
+/* Everything outside the viewer: the library, upload and login pages. The viewer's own
+   tokens (app/viewer.css) are loaded first, so these reuse the same palette. */
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px 64px}
+
+/* ---------- site header ---------- */
+/* This gets opened on a phone in the paddock as often as on a laptop, and four nav
+   buttons plus a wordmark do not fit across 380 px. Both rows wrap rather than pushing
+   the page into a horizontal scroll. */
+.sitehead{display:flex;align-items:center;gap:14px;padding:12px 22px;background:var(--surface);
+  border-bottom:1px solid var(--line);margin-bottom:26px;flex-wrap:wrap}
+.sitehead img{height:26px;width:auto;display:block}
+.sitehead .title{font-weight:600;letter-spacing:.2px}
+.sitehead .sub{color:var(--ink-3);font-size:11px}
+.sitehead nav{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media (max-width:640px){
+  .sitehead{gap:10px;padding:10px 14px;margin-bottom:18px}
+  .sitehead nav{margin-left:0;width:100%}
+  .wrap{padding:0 14px 48px}
+}
+a.btn,button.btn{display:inline-block;background:var(--surface-2);border:1px solid var(--line);
+  border-radius:6px;padding:6px 12px;cursor:pointer;text-decoration:none;color:var(--ink);
+  font:inherit;line-height:1.45}
+a.btn:hover,button.btn:hover{background:#2c2c2a;border-color:#4a4a44}
+a.btn.primary,button.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+a.btn.primary:hover,button.btn.primary:hover{background:#a90d26;border-color:#a90d26}
+button.btn:disabled{opacity:.45;cursor:default}
+
+h1{font-size:20px;font-weight:600;margin:0 0 4px}
+h2{font-size:13px;font-weight:600;margin:30px 0 10px;color:var(--ink-2)}
+.lede{color:var(--ink-3);font-size:12.5px;margin:0 0 20px}
+
+/* ---------- dataset list ---------- */
+.filters{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.filters input[type=search]{max-width:280px}
+.cards{display:grid;gap:10px}
+.card{display:block;background:var(--surface);border:1px solid var(--line);border-radius:10px;
+  padding:14px 16px;text-decoration:none;color:inherit}
+.card:hover{border-color:#4a4a44;background:#1f1f1e}
+.card .row1{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card .name{font-weight:600;font-size:14px}
+.card .desc{color:var(--ink-2);font-size:12.5px;margin:5px 0 0;white-space:pre-wrap}
+.card .facts{color:var(--ink-3);font-size:11.5px;font-family:var(--mono);margin-top:9px;
+  display:flex;gap:14px;flex-wrap:wrap}
+.card .acts{display:flex;gap:8px;margin-top:12px}
+
+.tag{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;padding:2px 7px;
+  border-radius:999px;border:1px solid var(--line);color:var(--ink-3)}
+.tag.shared{color:#7fd4ae;border-color:#25583f}
+.tag.unlisted{color:var(--ink-3)}
+.tag.mine{color:#f0b7c0;border-color:var(--brand-dim)}
+
+.empty{border:1px dashed var(--line);border-radius:10px;padding:44px 24px;text-align:center;
+  color:var(--ink-3)}
+
+/* ---------- forms ---------- */
+.form{max-width:560px;display:grid;gap:16px}
+.field{display:grid;gap:5px}
+/* Caption labels are uppercase; a <label> that wraps a control and a sentence of
+   explanation is not a caption, so it opts out rather than shouting. */
+.field>label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--ink-3)}
+.field>label.choice{font-size:inherit;text-transform:none;letter-spacing:normal;color:inherit}
+.field textarea{background:var(--surface-2);border:1px solid var(--line);border-radius:6px;
+  padding:7px 9px;width:100%;font:inherit;color:inherit;resize:vertical;min-height:74px}
+.field .note{color:var(--ink-3);font-size:11.5px}
+.choice{display:flex;gap:9px;align-items:flex-start;background:var(--surface);
+  border:1px solid var(--line);border-radius:8px;padding:11px 13px;cursor:pointer}
+.choice input{width:auto;margin:2px 0 0}
+.choice.on{border-color:var(--brand-dim);background:#1f1517}
+.choice b{display:block;font-weight:600}
+.choice span{color:var(--ink-3);font-size:11.5px}
+
+table.setup{border-collapse:collapse;font-size:11.5px;color:var(--ink-2)}
+table.setup td{padding:3px 14px 3px 0;vertical-align:top}
+table.setup code{font-family:var(--mono);color:var(--ink)}
+
+.err{background:#2a1417;border:1px solid var(--brand-dim);color:#f3c3ca;border-radius:8px;
+  padding:10px 13px;font-size:12.5px}
+.ok{background:#12241c;border:1px solid #25583f;color:#a9e2c8;border-radius:8px;
+  padding:10px 13px;font-size:12.5px}
+
+/* ---------- upload progress ---------- */
+.steps{display:grid;gap:7px;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.step{display:flex;gap:9px;align-items:center}
+.step .dot{width:7px;height:7px;border-radius:50%;background:#3a3a36;flex:none}
+.step.run .dot{background:var(--brand)}
+.step.done .dot{background:#199e70}
+.step.done{color:var(--ink-2)}
+.bar{height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;margin-top:3px}
+.bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .15s}
+
+/* ---------- login ---------- */
+.login{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}
+.login form{width:320px;display:grid;gap:12px;text-align:center}
+.login img{height:30px;width:auto;margin:0 auto 6px}
+.login input{text-align:center}
+
+/* ---------- viewer page chrome ---------- */
+.viewbar{display:flex;align-items:center;gap:12px;padding:6px 14px;background:var(--surface);
+  border-bottom:1px solid var(--line);flex:none;font-size:12px}
+.viewbar .sp{flex:1}
+.viewbar a{color:var(--ink-2)}
