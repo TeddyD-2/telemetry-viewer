@@ -65,6 +65,9 @@ export async function PATCH(req, { params }){
     /* Lap count is not a field anyone types: it arrives from the viewer the first time
        the session is opened, because detection needs the whole session in memory. */
     laps: Number.isFinite(+b.laps) ? Math.trunc(+b.laps) : row.laps,
+    /* Absent means "leave them alone", not "clear them". A lap-count writeback must not
+       throw away the role choices the uploader made at import. */
+    roles: b.roles === undefined ? row.roles : b.roles,
   });
   return NextResponse.json({ dataset: rowToDataset(updated, me) });
 }

@@ -45,7 +45,21 @@ const base = {
 };
 
 const ME = 'Teddy Duncker', THEM = 'Priya Nair';
-const mine = await insertDataset(sql, { ...base, id: 'aaa1', listed: true, ownerToken: '' });
+/* Roles travel as channel names plus which occurrence, never as column indices. */
+const ROLES_AT_IMPORT = { speed: { name: 'GPS Speed', nth: 0 }, lat: { name: 'GPS Latitude' } };
+/* jsonb does not preserve key order -- Postgres stores {name,nth} back as {nth,name} --
+   so these have to be compared by value. Anything that diffs roles by serialising them
+   would see a spurious change on every read. */
+const sameRoles = (a, b) => {
+  if (!a || !b) return a === b;
+  const ka = Object.keys(a), kb = Object.keys(b);
+  return ka.length === kb.length && ka.every(k =>
+    b[k] && a[k].name === b[k].name && (a[k].nth ?? 0) === (b[k].nth ?? 0));
+};
+const mine = await insertDataset(sql, {
+  ...base, id: 'aaa1', listed: true, ownerToken: '', roles: ROLES_AT_IMPORT,
+});
+check(sameRoles(mine.roles, ROLES_AT_IMPORT), 'roles round-trip as jsonb');
 const theirsShared = await insertDataset(sql, {
   ...base, id: 'bbb2', title: 'Autocross practice', uploader: THEM, listed: true, ownerToken: '',
 });
@@ -82,7 +96,10 @@ check(dto.csvBytes === 83021163 && typeof dto.csvBytes === 'number', 'byte count
 const patched = await updateDataset(sql, 'aaa1', {
   title: 'Michigan endurance — rear brake test',
   description: base.description, uploader: base.uploader, listed: false, laps: 22,
+  roles: mine.roles,
 });
+check(sameRoles(patched.roles, ROLES_AT_IMPORT),
+  'a lap-count writeback does not clear the roles settled at import');
 check(patched.uploader === ME, 'editing a session does not reassign its credit');
 check(patched.title.endsWith('rear brake test'), 'update changes the title');
 check(patched.listed === false, 'update can unshare a session');

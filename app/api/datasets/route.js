@@ -78,6 +78,8 @@ export async function POST(req){
     vehicle: str(b.vehicle, 120),
     racer: str(b.racer, 120),
     recordedAt: str(b.recordedAt, 120),
+    /* Settled at import so no one downstream is asked the same question again. */
+    roles: b.roles && typeof b.roles === 'object' ? b.roles : null,
   });
 
   return NextResponse.json({ dataset: rowToDataset(row, me) }, { status: 201 });

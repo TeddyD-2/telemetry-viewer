@@ -22,10 +22,16 @@ at 20 Hz), but nothing in it is specific to that file.
   as an outlier rather than counted as a lap. Click a lap to zoom to it, tick it to overlay it.
   If it picks the wrong start/finish, click anywhere on the trace in **Track** to move the line
   and everything re-times.
-- **Traces.** Up to 8 channels stacked with a shared x-axis and crosshair, x in time or
-  distance. Drag to zoom, wheel to zoom, shift-drag to pan, double-click to reset. Lanes no
-  longer shrink to fit the window: set the height with the +/− buttons, drag a lane's bottom
-  edge to give that one more room, or tile into two columns.
+- **Traces.** Up to 8 channels, tiled two-up by default, drawn with
+  [uPlot](https://github.com/leeoniya/uPlot) — canvas, ~45 KB, built for long ordered
+  series. Drag to zoom, wheel to zoom about the pointer, double-click to reset; the cursor
+  is synchronised across every chart. **Drag one chart onto another to overlay them**, which
+  is how brake pressure goes under speed; merged channels keep independent vertical scales,
+  because bar and km/h have no shared axis. Line weight, chart height and rows-vs-tiles are
+  on the toolbar.
+
+  The track map and the g–g diagram stay hand-rolled canvas: they are x/y point clouds, not
+  time series, which is not what uPlot is for.
 - **Compare.** The same channel over several laps, aligned on distance into the lap, plus a
   **delta-t** chart underneath showing where each lap gains or loses against a reference. This
   is the plot that answers "where did the time actually go". Both carry a legend and a
@@ -49,6 +55,13 @@ at 20 Hz), but nothing in it is specific to that file.
   cursor readout always agree. The panel stays collapsed while the matching holds — on a
   clean export there is nothing to do in it — and opens itself when a role is unset or
   ambiguous.
+
+  **Conflicts are settled once, at import.** The upload page runs the same matching the
+  viewer does, asks about anything it cannot settle, and stores the answers with the
+  session, so nobody who opens it later is asked again. That is why the role logic lives in
+  `lib/viewer/session.js` rather than inside the viewer — the upload page has no canvas to
+  hang it off. Lap counts are computed there too, so a library card is right the moment it
+  appears.
 
   **Where two channels match equally well, the viewer does not choose.** One Michigan export
   carries two live channels both called `GPS Speed`, one peaking at 79 km/h and one at 284.

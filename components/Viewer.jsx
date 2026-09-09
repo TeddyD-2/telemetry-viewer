@@ -12,11 +12,11 @@ import { fetchParsed } from '../lib/viewer/binary.js';
      {kind:'local'}                     wait for a drop or the file picker
      {kind:'stored', binUrl, title}     download a parsed session and open it
      {kind:'handoff'}                   opened elsewhere; onMount hands the session over  */
-export default function Viewer({ source = { kind: 'local' }, title, onLoad, onMount }){
+export default function Viewer({ source = { kind: 'local' }, title, roles, onLoad, onMount }){
   const rootRef = useRef(null);
 
   useEffect(() => {
-    const api = createViewer(rootRef.current, { title });
+    const api = createViewer(rootRef.current, { title, roles });
     let dead = false;
 
     /* One `loaded` hook for every path in, so a page can react to a session opening
@@ -76,10 +76,13 @@ export default function Viewer({ source = { kind: 'local' }, title, onLoad, onMo
               <button data-x="dist">Distance</button>
             </div>
             <span className="seg" id="tracectl">
-              <button data-cols="1" className="on" title="one lane per channel">Rows</button>
-              <button data-cols="2" title="two columns">Tile</button>
-              <button data-h="-40" title="shorter lanes">&minus;</button>
-              <button data-h="40" title="taller lanes">+</button>
+              <button data-cols="1" title="one chart per row">Rows</button>
+              <button data-cols="2" className="on" title="two columns">Tile</button>
+              <button data-w="1" title="hairline">&thinsp;·&thinsp;</button>
+              <button data-w="1.5" className="on" title="normal line">&ndash;</button>
+              <button data-w="2.5" title="thick line">&#9473;</button>
+              <button data-h="-40" title="shorter charts">&minus;</button>
+              <button data-h="40" title="taller charts">+</button>
             </span>
             <button id="zoomlap">Zoom to lap</button>
             <button id="reset">Reset zoom</button>

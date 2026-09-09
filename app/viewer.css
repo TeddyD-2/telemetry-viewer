@@ -170,3 +170,49 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--surface-2);border:
   transition:opacity .12s}
 .chart:hover .grip::after{opacity:.7}
 .chart .grip:hover::after{opacity:1;background:var(--brand)}
+
+/* ---------- trace stack (uPlot) ----------------------------------------------------
+   uPlot ships a light stylesheet; these are the dark-theme overrides plus the lane
+   chrome that lives outside the canvas (header, drag handle, resize grip). */
+:root{ --grid:#2b2b28; }
+
+#view.tiled{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
+  gap:12px;align-content:start}
+
+.lane{position:relative;background:var(--surface);border:1px solid var(--line);
+  border-radius:10px;padding:0 0 4px;margin-bottom:12px;overflow:hidden;
+  transition:border-color .12s, box-shadow .12s}
+#view.tiled .lane{margin-bottom:0}
+.lane.dragging{opacity:.4}
+.lane.over{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}
+
+.lane-hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:7px 10px 5px;font-size:11.5px;position:relative;z-index:2}
+.lane-hd .ser{display:inline-flex;align-items:center;gap:6px}
+.lane-hd .sw{width:9px;height:9px;border-radius:2px;flex:none}
+.lane-hd .nm{font-weight:600}
+.lane-hd .u{color:var(--ink-3);font-family:var(--mono);font-size:10.5px}
+.lane-hd .v{font-family:var(--mono);font-size:12px;min-width:52px}
+.lane-hd .drop{background:none;border:0;color:var(--ink-3);cursor:pointer;padding:0 2px;
+  font-size:13px;line-height:1;opacity:0;transition:opacity .12s}
+.lane:hover .lane-hd .drop{opacity:1}
+.lane-hd .drop:hover{color:var(--brand)}
+/* The grab handle is the drag target: dragging inside the plot is uPlot's zoom. */
+.lane-hd .grab{margin-left:auto;color:#3f3f3a;cursor:grab;letter-spacing:-2px;
+  font-size:14px;padding:0 2px}
+.lane:hover .lane-hd .grab{color:var(--ink-3)}
+
+.lane .uplot,.lane .u-wrap{width:100%}
+.u-select{background:rgba(200,16,46,.16)}
+.u-cursor-x,.u-cursor-y{border-color:rgba(255,255,255,.32)!important}
+.u-axis{color:var(--ink-3)}
+
+.empty-traces{padding:40px 26px;max-width:520px}
+.empty-traces b{display:block;font-size:14px;color:var(--ink);margin-bottom:6px}
+.empty-traces .keys{margin-top:14px;display:flex;gap:14px;flex-wrap:wrap;font-size:11px}
+kbd{background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-family:var(--mono);font-size:10.5px}
+
+button.linky{background:none;border:0;color:var(--s1);cursor:pointer;padding:0;
+  font:inherit;text-decoration:underline}
+.field .warn{color:var(--brand)}

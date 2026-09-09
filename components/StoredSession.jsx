@@ -59,6 +59,7 @@ export default function StoredSession({ dataset }){
       <Viewer
         source={{ kind: 'stored', binUrl: d.binUrl, title: d.title }}
         title={d.title}
+        roles={d.roles}
         onLoad={onLoad}
       />
     </>

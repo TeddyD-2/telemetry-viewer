@@ -1,3 +1,4 @@
+import 'uplot/dist/uPlot.min.css';
 import './viewer.css';
 import './site.css';
 
