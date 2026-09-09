@@ -84,33 +84,75 @@ export default function Viewer({
 
         <div id="content">
           <div id="bar" style={{ display: 'none' }}>
-            <div className="seg" id="modes">
-              <button data-mode="traces" className="on">Traces</button>
-              <button data-mode="compare">Compare</button>
-              <button data-mode="track">Track</button>
-              <button data-mode="analysis">Analysis</button>
+            <label className="pick">
+              <span>View</span>
+              <select id="modesel">
+                <option value="traces">Traces</option>
+                <option value="compare">Compare</option>
+                <option value="track">Track</option>
+                <option value="analysis">Analysis</option>
+              </select>
+            </label>
+            <label className="pick">
+              <span>X axis</span>
+              <select id="xsel">
+                <option value="time">Time</option>
+                <option value="dist">Distance</option>
+              </select>
+            </label>
+
+            {/* Chart appearance is a preference you set once, not a control you reach for
+                mid-session, so it folds into a menu instead of spending six slots on the
+                bar. */}
+            <div className="menu" id="layoutmenu" hidden>
+              <button className="btn" data-open aria-haspopup="true" aria-expanded="false">
+                Layout <span className="caret">▾</span>
+              </button>
+              <div className="pop" hidden>
+                <div className="row">
+                  <span>Arrangement</span>
+                  <span className="seg">
+                    <button data-cols="1">Rows</button>
+                    <button data-cols="2" className="on">Tile</button>
+                  </span>
+                </div>
+                <div className="row">
+                  <span>Line</span>
+                  <span className="seg">
+                    <button data-w="1" title="hairline">&thinsp;·&thinsp;</button>
+                    <button data-w="1.5" className="on" title="normal">&ndash;</button>
+                    <button data-w="2.5" title="thick">&#9473;</button>
+                  </span>
+                </div>
+                <div className="row">
+                  <span>Height</span>
+                  <span className="seg">
+                    <button data-h="-40" title="shorter">&minus;</button>
+                    <button data-h="40" title="taller">+</button>
+                  </span>
+                </div>
+              </div>
             </div>
-            <div className="seg" id="xmodes">
-              <button data-x="time" className="on">Time</button>
-              <button data-x="dist">Distance</button>
-            </div>
-            <span className="seg" id="tracectl">
-              <button data-cols="1" title="one chart per row">Rows</button>
-              <button data-cols="2" className="on" title="two columns">Tile</button>
-              <button data-w="1" title="hairline">&thinsp;·&thinsp;</button>
-              <button data-w="1.5" className="on" title="normal line">&ndash;</button>
-              <button data-w="2.5" title="thick line">&#9473;</button>
-              <button data-h="-40" title="shorter charts">&minus;</button>
-              <button data-h="40" title="taller charts">+</button>
-            </span>
-            <button id="zoomlap">Zoom to lap</button>
-            <button id="reset">Reset zoom</button>
+
+            <button id="zoomlap" className="btn">Zoom to lap</button>
+            <button id="reset" className="btn">Reset zoom</button>
             <div className="sp" style={{ flex: 1 }} />
-            <span className="lbl" title="Which channel is speed. Drives distance, lap detection and the cursor readout.">speed</span>
-            <select id="spdsel" style={{ width: 'auto', maxWidth: 230 }} />
-            <span className="lbl" id="rangelbl" />
-            <button id="exportpng">PNG</button>
-            <button id="exportcsv">CSV</button>
+
+            <div className="menu" id="savemenu">
+              <button className="btn" data-open aria-haspopup="true" aria-expanded="false"
+                      title="Save what is on screen">
+                <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M8 1v9M4.5 7L8 10.5 11.5 7M2 13.5h12" fill="none"
+                        stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"
+                        strokeLinejoin="round" />
+                </svg>
+                <span className="caret">▾</span>
+              </button>
+              <div className="pop right" hidden>
+                <button className="item" id="exportpng">Save image (PNG)</button>
+                <button className="item" id="exportcsv">Export data (CSV)</button>
+              </div>
+            </div>
           </div>
           <div id="view">
             <div id="empty">

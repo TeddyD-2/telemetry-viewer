@@ -10,7 +10,12 @@ export default function LocalPage(){
   return (
     <Viewer
       source={{ kind: 'local' }}
-      back={<Link className="back" href="/" title="Back to the library">←</Link>}
+      back={<Link className="back" href="/" title="Library" aria-label="Library">
+        <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M2 7.2 8 2l6 5.2M3.6 6v7.2h8.8V6" fill="none" stroke="currentColor"
+                strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </Link>}
       actions={<>
         <span className="by">local file · nothing is uploaded</span>
         <Link className="btn" href="/upload">Share this session</Link>
