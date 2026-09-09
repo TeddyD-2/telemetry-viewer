@@ -20,7 +20,28 @@ export default function StoredSession({ dataset }){
      session beats the ownership fetch every time, which is why this waits on both
      rather than doing the work inside the load callback. */
   const [detected, setDetected] = useState(null);
-  const onLoad = api => setDetected(api.summary());
+  const [live, setLive] = useState(null);       // the viewer's current role bindings
+  const [savedRoles, setSavedRoles] = useState(false);
+  const onLoad = api => {
+    setDetected(api.summary());
+    setLive({ roles: api.roles(), unanswered: api.rolesUnanswered() });
+  };
+
+  /* Sessions uploaded before roles were stored still ask everyone who opens them. Once
+     the person who uploaded it has answered, they can put the answer on the session so
+     the next person is not asked at all. */
+  const canSaveRoles = mine && live && live.unanswered.length === 0
+    && !sameRoles(live.roles, d.roles);
+
+  async function saveRoles(){
+    const res = await fetch(`/api/datasets/${d.id}`, {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ roles: live.roles }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (res.ok){ setD(body.dataset); setSavedRoles(true); }
+  }
 
   useEffect(() => {
     if (!detected || !mine || patched.current) return;
@@ -42,6 +63,13 @@ export default function StoredSession({ dataset }){
           {d.listed ? '' : ' · unlisted'}
         </span>
         <div className="sp" />
+        {savedRoles && <span style={{ color: '#7fd4ae' }}>channel choices saved</span>}
+        {canSaveRoles && (
+          <button className="btn primary" onClick={saveRoles}
+                  title="Store these channel roles on the session so nobody else is asked">
+            Save channel choices
+          </button>
+        )}
         {mine && (
           <button className="btn" onClick={() => setEditing(v => !v)}>
             {editing ? 'Close' : 'Edit details'}
@@ -64,6 +92,14 @@ export default function StoredSession({ dataset }){
       />
     </>
   );
+}
+
+/* jsonb does not preserve key order, so roles have to be compared by value. */
+function sameRoles(a, b){
+  if (!a || !b) return !a && !b;
+  const ka = Object.keys(a), kb = Object.keys(b);
+  return ka.length === kb.length && ka.every(k =>
+    b[k] && a[k].name === b[k].name && (a[k].nth ?? 0) === (b[k].nth ?? 0));
 }
 
 function EditPanel({ d, onSaved }){

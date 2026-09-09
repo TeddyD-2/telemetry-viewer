@@ -18,6 +18,7 @@ export default function Viewer({ source = { kind: 'local' }, title, roles, onLoa
   useEffect(() => {
     const api = createViewer(rootRef.current, { title, roles });
     let dead = false;
+    const off = [];
 
     /* One `loaded` hook for every path in, so a page can react to a session opening
        without caring whether it came off disk or off the network. */
@@ -38,7 +39,15 @@ export default function Viewer({ source = { kind: 'local' }, title, roles, onLoa
 
     if (onMount) onMount(api);
 
-    return () => { dead = true; api.destroy(); };
+    /* Role changes happen inside the viewer's own DOM, so a page that wants to know
+       (to offer "save these choices") watches the panel rather than being called back
+       from a dozen places in core.js. */
+    const watch = new MutationObserver(() => onLoad && onLoad(api));
+    const panel = rootRef.current.querySelector('#side');
+    if (panel) watch.observe(panel, { subtree: true, childList: true });
+    off.push(() => watch.disconnect());
+
+    return () => { dead = true; off.forEach(f => f()); api.destroy(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
