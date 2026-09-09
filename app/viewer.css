@@ -178,14 +178,21 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--surface-2);border:
 .rolefix .role label{flex:0 0 96px}
 
 /* Resize handle along a lane's bottom edge. Invisible until the pointer is near it --
-   a permanent grip on every lane would be eight more pieces of furniture to look at. */
-.chart .grip{position:absolute;left:0;right:0;bottom:-3px;height:9px;cursor:ns-resize;
-  touch-action:none}
-.chart .grip::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
-  top:3px;width:44px;height:3px;border-radius:2px;background:#4a4a44;opacity:0;
+   a permanent grip on every lane would be one more piece of furniture per chart. */
+.lane .grip{position:absolute;left:0;right:0;bottom:0;height:10px;cursor:ns-resize;
+  touch-action:none;z-index:3}
+.lane .grip::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
+  bottom:3px;width:46px;height:3px;border-radius:2px;background:#4a4a44;opacity:0;
   transition:opacity .12s}
-.chart:hover .grip::after{opacity:.7}
-.chart .grip:hover::after{opacity:1;background:var(--brand)}
+.lane:hover .grip::after{opacity:.75}
+.lane .grip:hover::after{opacity:1;background:var(--brand)}
+
+/* The drag handle is the only part of a lane that starts a move -- the plot area is
+   uPlot's, for zoom. */
+.lane-hd .grab{touch-action:none;user-select:none}
+.lane-hd .grab:active{cursor:grabbing}
+#view.dragging-lane .lane{cursor:grabbing}
+#view.dragging-lane .u-over{pointer-events:none}
 
 /* ---------- trace stack (uPlot) ----------------------------------------------------
    uPlot ships a light stylesheet; these are the dark-theme overrides plus the lane
