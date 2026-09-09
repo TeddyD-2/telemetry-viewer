@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { missingConfig } from '../../../lib/config.js';
 import { sql, ready } from '../../../lib/db.js';
 import { listDatasets, insertDataset, rowToDataset } from '../../../lib/datasets.js';
+import { currentUser } from '../../../lib/session.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,14 +17,15 @@ function configError(){
     : null;
 }
 
-/* GET /api/datasets            -> sessions shared with the team
-   GET /api/datasets?mine=<tok> -> those, plus the unlisted ones this browser uploaded */
-export async function GET(req){
+/* Sessions shared with the team, plus the unlisted ones the signed-in person uploaded.
+   Who that is comes from the session cookie, not the query string -- the client has no
+   say in whose sessions it gets to see. */
+export async function GET(){
   const bad = configError(); if (bad) return bad;
   await ready();
-  const mine = req.nextUrl.searchParams.get('mine') || '';
-  const rows = await listDatasets(sql(), mine);
-  return NextResponse.json({ datasets: rows.map(r => rowToDataset(r, mine)) });
+  const me = await currentUser();
+  const rows = await listDatasets(sql(), me);
+  return NextResponse.json({ datasets: rows.map(r => rowToDataset(r, me)), me });
 }
 
 const str = (v, max) => String(v ?? '').trim().slice(0, max);
@@ -47,7 +49,11 @@ export async function POST(req){
 
   const title = str(b.title, 200);
   if (!title) return NextResponse.json({ error: 'a title is required' }, { status: 400 });
-  if (!b.ownerToken) return NextResponse.json({ error: 'missing owner token' }, { status: 400 });
+
+  /* The uploader is whoever is signed in. It used to be a field on the form, which let
+     the credit on a session and the permission to edit it disagree. */
+  const me = await currentUser();
+  if (!me) return NextResponse.json({ error: 'not signed in' }, { status: 401 });
   if (!BLOB_HOST.test(String(b.csvUrl || '')) || !BLOB_HOST.test(String(b.binUrl || ''))){
     return NextResponse.json({ error: 'files must be uploaded through this site' }, { status: 400 });
   }
@@ -56,9 +62,9 @@ export async function POST(req){
     id: crypto.randomUUID().replace(/-/g, '').slice(0, 16),
     title,
     description: str(b.description, 2000),
-    uploader: str(b.uploader, 80),
+    uploader: me,
     listed: !!b.listed,
-    ownerToken: str(b.ownerToken, 100),
+    ownerToken: '',
     csvUrl: b.csvUrl,
     csvName: str(b.csvName, 200),
     csvBytes: int(b.csvBytes) || 0,
@@ -74,5 +80,5 @@ export async function POST(req){
     recordedAt: str(b.recordedAt, 120),
   });
 
-  return NextResponse.json({ dataset: rowToDataset(row, b.ownerToken) }, { status: 201 });
+  return NextResponse.json({ dataset: rowToDataset(row, me) }, { status: 201 });
 }

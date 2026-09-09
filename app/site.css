@@ -25,6 +25,12 @@ a.btn:hover,button.btn:hover{background:#2c2c2a;border-color:#4a4a44}
 a.btn.primary,button.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
 a.btn.primary:hover,button.btn.primary:hover{background:#a90d26;border-color:#a90d26}
 button.btn:disabled{opacity:.45;cursor:default}
+/* Who you are doubles as the sign-out button: one chip rather than a label plus a
+   button, since signing out is the only thing you can do to it. */
+button.btn.who{display:inline-flex;align-items:center;gap:8px}
+button.btn.who .nm{font-weight:600}
+button.btn.who .out{color:var(--ink-3);font-size:11px}
+button.btn.who:hover .out{color:var(--brand)}
 
 h1{font-size:20px;font-weight:600;margin:0 0 4px}
 h2{font-size:13px;font-weight:600;margin:30px 0 10px;color:var(--ink-2)}

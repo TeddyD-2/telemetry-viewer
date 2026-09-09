@@ -44,15 +44,16 @@ const base = {
   session: 'Michigan', vehicle: 'arg26', racer: 'comp', recordedAt: 'Saturday, June 20, 2026 12:03 PM',
 };
 
-const mine = await insertDataset(sql, { ...base, id: 'aaa1', listed: true, ownerToken: 'tok-me' });
+const ME = 'Teddy Duncker', THEM = 'Priya Nair';
+const mine = await insertDataset(sql, { ...base, id: 'aaa1', listed: true, ownerToken: '' });
 const theirsShared = await insertDataset(sql, {
-  ...base, id: 'bbb2', title: 'Autocross practice', listed: true, ownerToken: 'tok-them',
+  ...base, id: 'bbb2', title: 'Autocross practice', uploader: THEM, listed: true, ownerToken: '',
 });
-const theirsUnlisted = await insertDataset(sql, {
-  ...base, id: 'ccc3', title: 'Scratch run', listed: false, ownerToken: 'tok-them',
+await insertDataset(sql, {
+  ...base, id: 'ccc3', title: 'Scratch run', uploader: THEM, listed: false, ownerToken: '',
 });
-const mineUnlisted = await insertDataset(sql, {
-  ...base, id: 'ddd4', title: 'My rough run', listed: false, ownerToken: 'tok-me',
+await insertDataset(sql, {
+  ...base, id: 'ddd4', title: 'My rough run', listed: false, ownerToken: '',
 });
 
 check(mine.id === 'aaa1' && mine.title === 'Michigan endurance', 'insert returns the row');
@@ -65,23 +66,24 @@ const anon = await listDatasets(sql, '');
 check(anon.length === 2, `signed-in stranger sees only shared sessions (${anon.length} of 4)`);
 check(!anon.some(r => r.id === 'ccc3' || r.id === 'ddd4'), 'unlisted sessions stay out of the list');
 
-const forMe = await listDatasets(sql, 'tok-me');
+const forMe = await listDatasets(sql, ME);
 check(forMe.length === 3, `uploader also sees their own unlisted session (${forMe.length} of 4)`);
 check(forMe.some(r => r.id === 'ddd4'), 'my unlisted session is in my list');
 check(!forMe.some(r => r.id === 'ccc3'), "someone else's unlisted session is not");
 
 check(forMe[0].created_at >= forMe[forMe.length - 1].created_at, 'newest first');
 
-const dto = rowToDataset(mine, 'tok-me');
+const dto = rowToDataset(mine, ME);
 check(dto.mine === true, 'rowToDataset marks my own session');
-check(rowToDataset(theirsShared, 'tok-me').mine === false, "and does not mark someone else's");
-check(!('owner_token' in dto) && !('ownerToken' in dto), 'the owner token is never sent to the browser');
+check(rowToDataset(theirsShared, ME).mine === false, "and does not mark someone else's");
+check(!('owner_token' in dto) && !('ownerToken' in dto), 'the legacy owner token is never sent to the browser');
 check(dto.csvBytes === 83021163 && typeof dto.csvBytes === 'number', 'byte counts reach the browser as numbers');
 
 const patched = await updateDataset(sql, 'aaa1', {
   title: 'Michigan endurance — rear brake test',
   description: base.description, uploader: base.uploader, listed: false, laps: 22,
 });
+check(patched.uploader === ME, 'editing a session does not reassign its credit');
 check(patched.title.endsWith('rear brake test'), 'update changes the title');
 check(patched.listed === false, 'update can unshare a session');
 check(patched.laps === 22, 'the viewer can fill in the lap count later');
@@ -94,7 +96,7 @@ check((await getDataset(sql, 'nope')) === null, 'a missing id reads as null, not
 /* The unique id the route mints has to actually fit the column. */
 const wide = await insertDataset(sql, {
   ...base, id: crypto.randomUUID().replace(/-/g, '').slice(0, 16),
-  listed: true, ownerToken: crypto.randomUUID(),
+  listed: true, ownerToken: '',
   description: 'x'.repeat(2000), title: 'y'.repeat(200),
 });
 check(wide.description.length === 2000 && wide.title.length === 200, 'the longest allowed text fits');

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ownerToken } from '../lib/owner.js';
 import { fmtBytes, fmtDuration, fmtWhen } from '../lib/format.js';
 
 export default function Library(){
@@ -12,8 +11,7 @@ export default function Library(){
   const [scope, setScope] = useState('all');
 
   useEffect(() => {
-    const t = ownerToken();
-    fetch(`/api/datasets${t ? `?mine=${encodeURIComponent(t)}` : ''}`)
+    fetch('/api/datasets')
       .then(r => r.json())
       .then(b => (b.error ? setError(b.error) : setDatasets(b.datasets)))
       .catch(e => setError(String(e.message || e)));

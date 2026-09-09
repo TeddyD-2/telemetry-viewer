@@ -42,8 +42,11 @@ input[type=search],input[type=text],select{background:var(--surface-2);border:1p
 #sessmeta{color:var(--ink-3);font-size:11px}
 #top .sp{flex:1}
 #main{flex:1;display:flex;min-height:0}
-#side{width:310px;flex:none;background:var(--surface);border-right:1px solid var(--line);
-  display:flex;flex-direction:column;min-height:0}
+/* On a short window the panels cannot all have their natural height. They used to
+   overflow their own box and paint over each other; now each one clips and the column
+   scrolls, so a laptop at 700 px tall degrades to scrolling rather than to garbage. */
+#side{width:352px;flex:none;background:var(--surface);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0;overflow-y:auto}
 #content{flex:1;display:flex;flex-direction:column;min-width:0}
 #bar{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid var(--line);
   background:var(--surface);flex:none;flex-wrap:wrap}
@@ -56,7 +59,10 @@ input[type=search],input[type=text],select{background:var(--surface-2);border:1p
 .lbl{color:var(--ink-3);font-size:11px;text-transform:uppercase;letter-spacing:.7px}
 
 /* ---------- sidebar panels ---------- */
-.panel{border-bottom:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.panel{border-bottom:1px solid var(--line);display:flex;flex-direction:column;min-height:0;
+  overflow:hidden}
+/* The list the current mode is built around always keeps enough room to be a list. */
+.panel.chanpanel{min-height:190px}
 .panel>h3{margin:0;padding:9px 12px;font-size:11px;font-weight:600;letter-spacing:.8px;
   text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:8px}
 .panel>h3 .n{color:var(--ink-3);font-weight:400;text-transform:none;letter-spacing:0}
@@ -83,16 +89,39 @@ table.laps .sw{display:inline-block;width:8px;height:8px;border-radius:2px;margi
   vertical-align:middle}
 .grp{padding:5px 12px 3px;color:var(--ink-3);font-size:10px;letter-spacing:.7px;
   text-transform:uppercase;background:#161615;position:sticky;top:0}
-.ch{display:flex;align-items:center;gap:7px;padding:3px 12px;cursor:pointer;font-size:12px}
+/* A 250-channel list is read by scanning, and the old 3 px rows at 12 px type made
+   that hard work. The observed range rides along on each row: it is what tells a live
+   GPS Speed from a dead one without opening anything. */
+.ch{display:flex;align-items:center;gap:8px;padding:6px 12px;cursor:pointer;font-size:13px;
+  border-left:2px solid transparent}
 .ch:hover{background:var(--surface-2)}
-.ch .sw{width:9px;height:9px;border-radius:2px;background:#3a3a36;flex:none}
-.ch .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ch .u{color:var(--ink-3);font-size:10px;font-family:var(--mono);flex:none}
-.ch.dead .nm{color:var(--ink-3)}
-.ch.on{background:#1e2836}
+.ch .sw{width:10px;height:10px;border-radius:2px;background:#3a3a36;flex:none}
+.ch .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch .rng{color:var(--ink-3);font-size:10.5px;font-family:var(--mono);flex:none;opacity:.75}
+.ch .u{color:var(--ink-3);font-size:10.5px;font-family:var(--mono);flex:none;min-width:30px;
+  text-align:right}
+.ch.dead .nm,.ch.dead .rng{color:var(--ink-3);opacity:.6}
+.ch.on{background:#1e2836;border-left-color:var(--s1)}
+.ch.on .nm{font-weight:600}
+
+.panel .ctl .flatlbl{display:flex;gap:6px;align-items:center;color:var(--ink-3);font-size:11.5px}
+.panel .ctl .flatlbl input{width:auto}
+button.mini{padding:3px 9px;font-size:11px}
+
+/* collapsible panel header */
+.panel>h3.disc{cursor:pointer;user-select:none}
+.panel>h3.disc:hover{color:var(--ink-2)}
+.panel>h3.disc .tw{font-size:9px;width:9px;display:inline-block}
+
+/* one-line hint above a chart, replacing the row of dropdowns that moved to the sidebar */
+.viewnote{color:var(--ink-3);font-size:11.5px;padding:2px 2px 9px}
 .ctl{padding:8px 12px;display:flex;gap:6px;align-items:center}
 
 /* ---------- charts ---------- */
+/* Tiling: two columns when the lanes are short enough that a stack wastes the width. */
+#view.tiled{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-content:start}
+#view.tiled .chart{margin:0}
+
 .chart{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:8px;
   margin-bottom:8px;overflow:hidden}
 .chart canvas{display:block;width:100%}
@@ -130,3 +159,13 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--surface-2);border:
 .rolefix{padding:22px 24px;max-width:560px}
 .rolefix b{display:block;margin-bottom:2px}
 .rolefix .role label{flex:0 0 96px}
+
+/* Resize handle along a lane's bottom edge. Invisible until the pointer is near it --
+   a permanent grip on every lane would be eight more pieces of furniture to look at. */
+.chart .grip{position:absolute;left:0;right:0;bottom:-3px;height:9px;cursor:ns-resize;
+  touch-action:none}
+.chart .grip::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
+  top:3px;width:44px;height:3px;border-radius:2px;background:#4a4a44;opacity:0;
+  transition:opacity .12s}
+.chart:hover .grip::after{opacity:.7}
+.chart .grip:hover::after{opacity:1;background:var(--brand)}

@@ -3,6 +3,7 @@ import { del } from '@vercel/blob';
 import { missingConfig } from '../../../../lib/config.js';
 import { sql, ready } from '../../../../lib/db.js';
 import { getDataset, updateDataset, deleteDataset, rowToDataset } from '../../../../lib/datasets.js';
+import { currentUser } from '../../../../lib/session.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,20 +23,23 @@ async function load(id){
   return getDataset(sql(), id);
 }
 
-export async function GET(req, { params }){
+export async function GET(_req, { params }){
   const bad = configError(); if (bad) return bad;
   const { id } = await params;
   const row = await load(id);
   if (!row) return NextResponse.json({ error: 'not found' }, { status: 404 });
-  return NextResponse.json({
-    dataset: rowToDataset(row, req.nextUrl.searchParams.get('mine') || ''),
-  });
+  return NextResponse.json({ dataset: rowToDataset(row, await currentUser()) });
 }
 
-/* Editing and deleting need the token the uploader's browser kept, not just the site
-   password -- everyone has the site password, and a shared library where anyone can
-   quietly retitle or bin someone else's session is a library nobody trusts. */
-const isOwner = (row, token) => !!token && token === row.owner_token;
+/* Editing and deleting belong to the person credited with the upload, not to anyone
+   holding the site password -- a library where a mis-click retitles or bins someone
+   else's run is a library nobody trusts. Signing in under another name is possible and
+   not defended against: this stops accidents, not impersonation.
+
+   `owner_token` is the older browser-bound scheme, still honoured so anything uploaded
+   before names existed stays editable by the browser that uploaded it. */
+const isOwner = (row, me, token) =>
+  (!!me && me === row.uploader) || (!!token && !!row.owner_token && token === row.owner_token);
 
 export async function PATCH(req, { params }){
   const bad = configError(); if (bad) return bad;
@@ -44,7 +48,8 @@ export async function PATCH(req, { params }){
   if (!row) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
   const b = await req.json().catch(() => ({}));
-  if (!isOwner(row, b.ownerToken)){
+  const me = await currentUser();
+  if (!isOwner(row, me, b.ownerToken)){
     return NextResponse.json({ error: 'only the uploader can change this session' }, { status: 403 });
   }
 
@@ -54,13 +59,14 @@ export async function PATCH(req, { params }){
   const updated = await updateDataset(sql(), id, {
     title,
     description: b.description === undefined ? row.description : String(b.description).trim().slice(0, 2000),
-    uploader: b.uploader === undefined ? row.uploader : String(b.uploader).trim().slice(0, 80),
+    /* Credit stays with whoever uploaded it; retitling does not reassign authorship. */
+    uploader: row.uploader,
     listed: b.listed === undefined ? row.listed : !!b.listed,
     /* Lap count is not a field anyone types: it arrives from the viewer the first time
        the session is opened, because detection needs the whole session in memory. */
     laps: Number.isFinite(+b.laps) ? Math.trunc(+b.laps) : row.laps,
   });
-  return NextResponse.json({ dataset: rowToDataset(updated, b.ownerToken) });
+  return NextResponse.json({ dataset: rowToDataset(updated, me) });
 }
 
 export async function DELETE(req, { params }){
@@ -69,7 +75,7 @@ export async function DELETE(req, { params }){
   const row = await load(id);
   if (!row) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
-  if (!isOwner(row, req.nextUrl.searchParams.get('ownerToken'))){
+  if (!isOwner(row, await currentUser(), req.nextUrl.searchParams.get('ownerToken'))){
     return NextResponse.json({ error: 'only the uploader can delete this session' }, { status: 403 });
   }
 

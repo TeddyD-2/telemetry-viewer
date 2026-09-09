@@ -5,14 +5,13 @@ import { useRouter } from 'next/navigation';
 import { upload } from '@vercel/blob/client';
 import { parseCsvFile } from '../lib/viewer/parse.js';
 import { encodeParsed, gzip } from '../lib/viewer/binary.js';
-import { ownerToken, rememberedName, rememberName } from '../lib/owner.js';
 import { fmtBytes, fmtDuration } from '../lib/format.js';
 
 /* The parse happens before the upload rather than after it, and does double duty: it
    proves the file is really an AiM export before 83 MB goes over the paddock wifi, and
    it fills in the title, vehicle and driver so nobody has to retype what the header
    already says. */
-export default function UploadForm({ members }){
+export default function UploadForm({ me }){
   const router = useRouter();
 
   const [file, setFile] = useState(null);
@@ -20,10 +19,6 @@ export default function UploadForm({ members }){
   const [summary, setSummary] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [uploader, setUploader] = useState('');
-  /* A remembered name that is no longer on the roster still belongs to a real person,
-     so the free-text box opens for it rather than silently dropping it. */
-  const [other, setOther] = useState(false);
   const [listed, setListed] = useState(true);
   const [stage, setStage] = useState('idle');   // idle | parsing | ready | uploading | done
   const [pct, setPct] = useState(0);
@@ -39,11 +34,6 @@ export default function UploadForm({ members }){
       setParsed(m);
       setSummary(describe(m));
       setTitle(t => t || suggestTitle(m, f));
-      const remembered = rememberedName();
-      if (remembered){
-        setUploader(u => u || remembered);
-        if (!members.includes(remembered)) setOther(true);
-      }
       setStage('ready');
     } catch (err){
       setStage('idle');
@@ -79,13 +69,11 @@ export default function UploadForm({ members }){
       });
 
       setStep('saving the details');
-      rememberName(uploader);
       const res = await fetch('/api/datasets', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          title: title.trim(), description, uploader, listed,
-          ownerToken: ownerToken(),
+          title: title.trim(), description, listed,
           csvUrl: csvBlob.url, csvName: file.name, csvBytes: file.size,
           binUrl: binBlob.url, binBytes: bin.size,
           ...summary,
@@ -148,31 +136,8 @@ export default function UploadForm({ members }){
       </div>
 
       <div className="field">
-        <label htmlFor="who">Uploaded by</label>
-        {members.length > 0 && (
-          <select
-            id="who" value={other ? '__other' : uploader} disabled={!parsed || busy}
-            onChange={e => {
-              setOther(e.target.value === '__other');
-              setUploader(e.target.value === '__other' ? '' : e.target.value);
-            }}
-          >
-            <option value="">—</option>
-            {members.map(m => <option key={m} value={m}>{m}</option>)}
-            <option value="__other">Someone else…</option>
-          </select>
-        )}
-        {(members.length === 0 || other) && (
-          <input
-            type="text" value={uploader} disabled={!parsed || busy}
-            onChange={e => setUploader(e.target.value)}
-            placeholder="Your name" aria-label="Your name"
-          />
-        )}
-      </div>
-
-      <div className="field">
         <label>Who can see it</label>
+        <div className="note">Credited to {me || 'you'} — whoever is signed in.</div>
         <label className={`choice ${listed ? 'on' : ''}`}>
           <input type="checkbox" checked={listed} disabled={!parsed || busy}
                  onChange={e => setListed(e.target.checked)} />

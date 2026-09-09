@@ -4,25 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Viewer from './Viewer.jsx';
-import { ownerToken } from '../lib/owner.js';
 import { fmtBytes } from '../lib/format.js';
 
-export default function StoredSession({ dataset, members }){
+export default function StoredSession({ dataset }){
   const [d, setD] = useState(dataset);
-  const [mine, setMine] = useState(false);
+  const [mine, setMine] = useState(dataset.mine);
   const [editing, setEditing] = useState(false);
   const patched = useRef(false);
-
-  /* Ownership is decided by asking the API with this browser's token, so the answer is
-     the same one the API will give when an edit is actually attempted. */
-  useEffect(() => {
-    const t = ownerToken();
-    if (!t) return;
-    fetch(`/api/datasets/${d.id}?mine=${encodeURIComponent(t)}`)
-      .then(r => r.json())
-      .then(b => b.dataset && setMine(!!b.dataset.mine))
-      .catch(() => {});
-  }, [d.id]);
 
   /* Lap detection needs the whole session in memory, which the upload page does not
      have a viewer for, so the count is filled in the first time the uploader opens it.
@@ -37,13 +25,11 @@ export default function StoredSession({ dataset, members }){
   useEffect(() => {
     if (!detected || !mine || patched.current) return;
     if (detected.laps === d.laps) return;
-    const t = ownerToken();
-    if (!t) return;
     patched.current = true;
     fetch(`/api/datasets/${d.id}`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ownerToken: t, laps: detected.laps }),
+      body: JSON.stringify({ laps: detected.laps }),
     }).then(r => r.json()).then(b => b.dataset && setD(b.dataset)).catch(() => {});
   }, [detected, mine, d.id, d.laps]);
 
@@ -67,10 +53,7 @@ export default function StoredSession({ dataset, members }){
       </div>
 
       {editing && (
-        <EditPanel
-          d={d} members={members}
-          onSaved={next => { setD(next); setEditing(false); }}
-        />
+        <EditPanel d={d} onSaved={next => { setD(next); setEditing(false); }} />
       )}
 
       <Viewer
@@ -82,11 +65,10 @@ export default function StoredSession({ dataset, members }){
   );
 }
 
-function EditPanel({ d, members, onSaved }){
+function EditPanel({ d, onSaved }){
   const router = useRouter();
   const [title, setTitle] = useState(d.title);
   const [description, setDescription] = useState(d.description || '');
-  const [uploader, setUploader] = useState(d.uploader || '');
   const [listed, setListed] = useState(d.listed);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -96,7 +78,7 @@ function EditPanel({ d, members, onSaved }){
     const res = await fetch(`/api/datasets/${d.id}`, {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ownerToken: ownerToken(), title, description, uploader, listed }),
+      body: JSON.stringify({ title, description, listed }),
     });
     const body = await res.json().catch(() => ({}));
     setBusy(false);
@@ -107,9 +89,7 @@ function EditPanel({ d, members, onSaved }){
   async function remove(){
     if (!confirm(`Delete "${d.title}"? The CSV and the cached copy go too, and this cannot be undone.`)) return;
     setBusy(true);
-    const res = await fetch(`/api/datasets/${d.id}?ownerToken=${encodeURIComponent(ownerToken())}`, {
-      method: 'DELETE',
-    });
+    const res = await fetch(`/api/datasets/${d.id}`, { method: 'DELETE' });
     if (res.ok){ router.push('/'); return; }
     const body = await res.json().catch(() => ({}));
     setError(body.error || 'could not delete');
@@ -127,23 +107,6 @@ function EditPanel({ d, members, onSaved }){
         <div className="field">
           <label htmlFor="e-desc">Notes</label>
           <textarea id="e-desc" value={description} onChange={e => setDescription(e.target.value)} />
-        </div>
-        <div className="field">
-          <label htmlFor="e-who">Uploaded by</label>
-          {members.length > 0 && (
-            <select
-              id="e-who" value={members.includes(uploader) ? uploader : '__other'}
-              onChange={e => setUploader(e.target.value === '__other' ? '' : e.target.value)}
-            >
-              <option value="">—</option>
-              {members.map(m => <option key={m} value={m}>{m}</option>)}
-              <option value="__other">Someone else…</option>
-            </select>
-          )}
-          {(members.length === 0 || !members.includes(uploader)) && (
-            <input type="text" value={uploader} onChange={e => setUploader(e.target.value)}
-                   placeholder="Name" aria-label="Uploaded by" />
-          )}
         </div>
         <label className={`choice ${listed ? 'on' : ''}`}>
           <input type="checkbox" checked={listed} onChange={e => setListed(e.target.checked)} />

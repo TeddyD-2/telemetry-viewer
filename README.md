@@ -23,7 +23,9 @@ at 20 Hz), but nothing in it is specific to that file.
   If it picks the wrong start/finish, click anywhere on the trace in **Track** to move the line
   and everything re-times.
 - **Traces.** Up to 8 channels stacked with a shared x-axis and crosshair, x in time or
-  distance. Drag to zoom, wheel to zoom, shift-drag to pan, double-click to reset.
+  distance. Drag to zoom, wheel to zoom, shift-drag to pan, double-click to reset. Lanes no
+  longer shrink to fit the window: set the height with the +/− buttons, drag a lane's bottom
+  edge to give that one more room, or tile into two columns.
 - **Compare.** The same channel over several laps, aligned on distance into the lap, plus a
   **delta-t** chart underneath showing where each lap gains or loses against a reference. This
   is the plot that answers "where did the time actually go". Both carry a legend and a
@@ -37,12 +39,17 @@ at 20 Hz), but nothing in it is specific to that file.
 - **Track.** GPS map coloured by any channel, cursor linked to every other view.
 - **Analysis.** g–g diagram, histogram, and min/max/mean/SD over whatever window is in view.
 - **Export** the current view as PNG, or the visible window and selected channels as CSV.
+- **A sidebar that follows the view.** Traces needs a channel multi-select; Track needs
+  exactly one channel; Compare needs a channel, a reference lap and some laps ticked. Each
+  mode gets the picker it actually needs, at full sidebar width and searchable, instead of
+  every mode getting all of them and the choice that matters hiding in a 260 px dropdown.
 - **Channel roles.** Speed, latitude, longitude, distance and the two g channels are guessed
-  from names once, then shown in the sidebar and overridable from a dropdown. Nothing is
-  re-guessed per view, so lap detection, the distance axis and the cursor readout always
-  agree; a view whose role is unset offers the picker instead of drawing something wrong.
-  Every picker lists unit and observed range next to the name, and same-named channels get a
-  `#1`/`#2` suffix — a live `GPS Speed` and a dead one are never confused for each other.
+  from names once. Nothing is re-guessed per view, so lap detection, the distance axis and
+  the cursor readout always agree. The panel stays collapsed while the guesses hold — on a
+  clean export there is nothing to do in it — and opens itself when a role is unset or a
+  name is ambiguous. Every picker lists unit and observed range next to the name, and
+  same-named channels get a `#1`/`#2` suffix, so a live `GPS Speed` and a dead one are never
+  confused for each other.
 
 ### The shared library
 
@@ -57,9 +64,11 @@ at 20 Hz), but nothing in it is specific to that file.
   Unlisted ones are reachable by link only — useful for a rough run you want to send to one
   person, but understand that it is not a security boundary: blob URLs are unguessable, not
   access-controlled.
-- **No accounts.** One password for the whole site; uploaders pick their name from the team
-  roster. Your browser keeps a random token so your own unlisted sessions show up under
-  *My uploads*, and so nobody else can retitle or delete the session you just added.
+- **No accounts, but names.** One password for the whole site, then you pick who you are
+  from the roster. Uploads are credited to whoever is signed in, your own unlisted sessions
+  follow you to any browser, and nobody else can retitle or delete a session they did not
+  add. Signing in as someone else is possible and not defended against — it stops accidents,
+  not impersonation.
 
 Small things that make it less painful than RS3: 48 of the 226 channels in this file never
 change value, and they're hidden by default; channels are grouped and searchable; the lap table
@@ -80,7 +89,7 @@ and under **Settings → Environment Variables** add:
 |---|---|
 | `SITE_PASSWORD` | the one password the team types to get in |
 | `AUTH_SECRET` | any long random string; signs the session cookie |
-| `TEAM_MEMBERS` | comma-separated roster for the uploader dropdown |
+| `TEAM_MEMBERS` | comma-separated roster; the list you pick your name from at sign-in |
 
 The `datasets` table is created on first use, so there is no migration step. Until the
 variables are set the library page says which ones are missing rather than throwing a 500, and

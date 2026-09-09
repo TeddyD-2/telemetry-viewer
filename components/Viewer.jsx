@@ -58,32 +58,10 @@ export default function Viewer({ source = { kind: 'local' }, title, onLoad, onMo
       </div>
 
       <div id="main">
-        <div id="side">
-          <div className="panel" style={{ flex: 'none' }}>
-            <h3>Laps <span className="n" id="lapn" /></h3>
-            <div className="body" id="lapwrap"><div className="hint" style={{ padding: '8px 12px' }}>&mdash;</div></div>
-          </div>
-          <div className="panel" style={{ flex: 'none' }}>
-            <h3>Channel roles <span className="n" id="rolen" /></h3>
-            <div className="body" id="rolewrap" style={{ padding: '6px 10px 10px' }}>
-              <div className="hint">&mdash;</div>
-            </div>
-          </div>
-          <div className="panel" id="chanpanel">
-            <h3>Channels <span className="n" id="chann" /></h3>
-            <div className="ctl">
-              <input type="search" id="chsearch" placeholder="Search channels&hellip;" />
-            </div>
-            <div className="ctl" style={{ paddingTop: 0 }}>
-              <label style={{ display: 'flex', gap: 6, alignItems: 'center', color: 'var(--ink-3)', fontSize: '11.5px' }}>
-                <input type="checkbox" id="hidedead" defaultChecked style={{ width: 'auto' }} /> hide flat channels
-              </label>
-              <div className="sp" style={{ flex: 1 }} />
-              <button id="clearsel" style={{ padding: '3px 8px', fontSize: 11 }}>clear</button>
-            </div>
-            <div className="body" id="chanwrap" />
-          </div>
-        </div>
+        {/* Filled per mode by renderSidebar in lib/viewer/core.js -- Traces needs a
+            channel multi-select, Track needs one channel, and showing both everywhere
+            is what made this column useless. */}
+        <div id="side" />
 
         <div id="content">
           <div id="bar" style={{ display: 'none' }}>
@@ -97,6 +75,12 @@ export default function Viewer({ source = { kind: 'local' }, title, onLoad, onMo
               <button data-x="time" className="on">Time</button>
               <button data-x="dist">Distance</button>
             </div>
+            <span className="seg" id="tracectl">
+              <button data-cols="1" className="on" title="one lane per channel">Rows</button>
+              <button data-cols="2" title="two columns">Tile</button>
+              <button data-h="-40" title="shorter lanes">&minus;</button>
+              <button data-h="40" title="taller lanes">+</button>
+            </span>
             <button id="zoomlap">Zoom to lap</button>
             <button id="reset">Reset zoom</button>
             <div className="sp" style={{ flex: 1 }} />

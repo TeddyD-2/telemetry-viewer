@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import LogoutButton from './LogoutButton.jsx';
+import { currentUser } from '../lib/session.js';
 
-export default function SiteHeader({ sub }){
+export default async function SiteHeader({ sub }){
+  const me = await currentUser();
   return (
     <header className="sitehead">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -14,7 +16,7 @@ export default function SiteHeader({ sub }){
         <Link className="btn" href="/">Library</Link>
         <Link className="btn" href="/local">Open a local file</Link>
         <Link className="btn primary" href="/upload">Add a session</Link>
-        <LogoutButton />
+        <LogoutButton me={me} />
       </nav>
     </header>
   );
