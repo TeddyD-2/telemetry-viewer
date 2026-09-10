@@ -177,41 +177,51 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--surface-2);border:
 .rolefix b{display:block;margin-bottom:2px}
 .rolefix .role label{flex:0 0 96px}
 
-/* Resize handle along a lane's bottom edge. Invisible until the pointer is near it --
-   a permanent grip on every lane would be one more piece of furniture per chart. */
-.lane .grip{position:absolute;left:0;right:0;bottom:0;height:10px;cursor:ns-resize;
-  touch-action:none;z-index:3}
-.lane .grip::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
-  bottom:3px;width:46px;height:3px;border-radius:2px;background:#4a4a44;opacity:0;
-  transition:opacity .12s}
-.lane:hover .grip::after{opacity:.75}
-.lane .grip:hover::after{opacity:1;background:var(--brand)}
-
-/* The drag handle is the only part of a lane that starts a move -- the plot area is
-   uPlot's, for zoom. */
-.lane-hd .grab{touch-action:none;user-select:none}
-.lane-hd .grab:active{cursor:grabbing}
-#view.dragging-lane .lane{cursor:grabbing}
-#view.dragging-lane .u-over{pointer-events:none}
-
 /* ---------- trace stack (uPlot) ----------------------------------------------------
    uPlot ships a light stylesheet; these are the dark-theme overrides plus the lane
    chrome that lives outside the canvas (header, drag handle, resize grip). */
-:root{ --grid:#2b2b28; }
+:root{ --grid:#2b2b28; --ease:cubic-bezier(.2,.8,.2,1); }
 
-#view.tiled{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));
-  gap:12px;align-content:start}
+/* The column count is a choice, not a side effect of the window. `auto-fit` handed a
+   lone chart the full width and halved it the moment a second arrived, so adding or
+   removing one chart resized the rest. Fixed columns only fall back when the stack is
+   genuinely too narrow for them.
+
+   Rows size to their own charts (align-items:start). A grid row stretches every cell
+   in it by default, so making one chart taller used to grow an empty box beside it. */
+#view{container-type:inline-size}
+#content{position:relative}
+.lanes{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:start;
+  position:relative;padding-bottom:6px}
+.lanes.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.lanes.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+@container (max-width:1020px){ .lanes.cols-3{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@container (max-width:680px){ .lanes.cols-2,.lanes.cols-3{grid-template-columns:minmax(0,1fr)} }
 
 .lane{position:relative;background:var(--surface);border:1px solid var(--line);
-  border-radius:10px;padding:0 0 4px;margin-bottom:12px;overflow:hidden;
-  transition:border-color .12s, box-shadow .12s}
-#view.tiled .lane{margin-bottom:0}
-.lane.dragging{opacity:.4}
-.lane.over{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}
+  border-radius:10px;padding:0 0 4px;overflow:hidden;
+  transition:transform .28s var(--ease),opacity .18s,border-color .15s,box-shadow .15s}
+.lane.enter{animation:lane-in .26s var(--ease)}
+@keyframes lane-in{from{opacity:0;transform:translateY(6px) scale(.985)}}
+@keyframes fade-in{from{opacity:0}}
+.lane.lifted{opacity:.32;border-style:dashed}
+.lane.drop-merge{border-color:var(--brand);
+  box-shadow:0 0 0 1px var(--brand) inset,0 0 0 4px rgba(200,16,46,.14)}
+.lane.drop-merge::after{content:attr(data-drop);position:absolute;inset:36px 10px 10px 62px;
+  display:grid;place-items:center;border-radius:8px;background:rgba(200,16,46,.09);
+  border:1px dashed rgba(200,16,46,.6);color:#fff;font-weight:600;font-size:12px;
+  letter-spacing:.3px;pointer-events:none;z-index:4;animation:fade-in .12s}
 
-.lane-hd{display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-  padding:7px 10px 5px;font-size:11.5px;position:relative;z-index:2}
-.lane-hd .ser{display:inline-flex;align-items:center;gap:6px}
+/* The whole header is the handle: dragging inside the plot is uPlot's zoom, so the
+   header is the one place a press can mean "pick this up". In a merged chart, one
+   channel's name lifts just that channel. */
+.lane-hd{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;
+  padding:7px 10px 5px;font-size:11.5px;position:relative;z-index:2;cursor:grab;
+  touch-action:none;user-select:none}
+.lane-hd .ser{display:inline-flex;align-items:center;gap:6px;border-radius:5px;
+  padding:1px 4px;margin:-1px -4px;transition:background .12s,opacity .12s}
+.lane-hd.merged .ser:hover{background:var(--surface-2)}
+.lane-hd .ser.lifted{opacity:.35}
 .lane-hd .sw{width:9px;height:9px;border-radius:2px;flex:none}
 .lane-hd .nm{font-weight:600}
 .lane-hd .u{color:var(--ink-3);font-family:var(--mono);font-size:10.5px}
@@ -220,12 +230,69 @@ kbd{font-family:var(--mono);font-size:10.5px;background:var(--surface-2);border:
   font-size:13px;line-height:1;opacity:0;transition:opacity .12s}
 .lane:hover .lane-hd .drop{opacity:1}
 .lane-hd .drop:hover{color:var(--brand)}
-/* The grab handle is the drag target: dragging inside the plot is uPlot's zoom. */
-.lane-hd .grab{margin-left:auto;color:#3f3f3a;cursor:grab;letter-spacing:-2px;
-  font-size:14px;padding:0 2px}
+.lane-hd .fx{background:none;border:0;padding:1px 4px;border-radius:4px;color:var(--s7);
+  font:italic 600 12px/1 Georgia,serif;cursor:pointer}
+.lane-hd .fx:hover{background:var(--surface-2);color:#fff}
+.lane-hd .grab{margin-left:auto;color:#3f3f3a;letter-spacing:-2px;font-size:14px;
+  padding:0 2px;transition:color .12s}
 .lane:hover .lane-hd .grab{color:var(--ink-3)}
 
+/* Resize handle along a lane's bottom edge. Invisible until the pointer is near it --
+   a permanent grip on every lane would be one more piece of furniture per chart. */
+.lane .grip{position:absolute;left:0;right:0;bottom:0;height:10px;cursor:ns-resize;
+  touch-action:none;z-index:3}
+.lane .grip::after{content:'';position:absolute;left:50%;transform:translateX(-50%);
+  bottom:3px;width:46px;height:3px;border-radius:2px;background:#4a4a44;opacity:0;
+  transition:opacity .12s,width .15s var(--ease)}
+.lane:hover .grip::after{opacity:.75}
+.lane .grip:hover::after,.lane.resizing .grip::after{opacity:1;background:var(--brand);width:72px}
+.lane.resizing{border-color:#4a4a44}
+
 .lane .uplot,.lane .u-wrap{width:100%}
+
+/* ---- while dragging ---- */
+html.tv-dragging,html.tv-dragging *{cursor:grabbing!important;user-select:none!important}
+html.tv-resizing,html.tv-resizing *{cursor:ns-resize!important;user-select:none!important}
+html.tv-dragging .u-over,html.tv-resizing .u-over{pointer-events:none}
+.drop-bar{position:absolute;z-index:6;border-radius:3px;background:var(--brand);
+  pointer-events:none;opacity:0;
+  box-shadow:0 0 0 3px rgba(200,16,46,.22),0 0 14px rgba(200,16,46,.5);
+  transition:left .14s var(--ease),top .14s var(--ease),width .14s var(--ease),
+    height .14s var(--ease),opacity .1s}
+.drop-bar.on{opacity:1}
+.drag-ghost{position:fixed;left:0;top:0;z-index:200;pointer-events:none;display:flex;
+  flex-direction:column;gap:3px;padding:7px 11px 6px;background:rgba(35,35,34,.96);
+  border:1px solid #4a4a44;border-radius:9px;box-shadow:0 14px 34px rgba(0,0,0,.55);
+  font-size:12px;max-width:340px;animation:ghost-in .14s var(--ease);transition:opacity .15s}
+@keyframes ghost-in{from{opacity:0;scale:.92}}
+.drag-ghost .chips{display:flex;flex-wrap:wrap;gap:4px 12px}
+.drag-ghost .chip{display:inline-flex;align-items:center;gap:6px;font-weight:600;
+  white-space:nowrap}
+.drag-ghost .sw{width:9px;height:9px;border-radius:2px}
+.drag-ghost .act{color:#f0b7c0;font-size:10.5px;letter-spacing:.3px}
+.drag-ghost.idle .act{color:var(--ink-3)}
+.drag-ghost.gone{opacity:0}
+.empty-traces.drop-hot{outline:2px dashed var(--brand);outline-offset:6px;border-radius:10px}
+
+#toast{position:absolute;left:50%;bottom:80px;transform:translate(-50%,8px);z-index:60;
+  background:var(--surface-2);border:1px solid #4a4a44;border-radius:8px;padding:8px 14px;
+  font-size:12px;box-shadow:0 10px 28px rgba(0,0,0,.5);opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s var(--ease)}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ---- math channels in the sidebar ---- */
+.ch{user-select:none}
+.ch .ed{background:none;border:0;padding:0 4px;color:var(--ink-3);opacity:0;font-size:12px;
+  line-height:1}
+.ch:hover .ed{opacity:1}
+.ch .ed:hover{color:var(--ink);background:none}
+.ch.math .nm::before{content:'ƒ';font:italic 600 12px Georgia,serif;color:var(--s7);
+  margin-right:6px}
+.ch.err .nm{color:#f0b7c0}
+.ch .warn{color:var(--brand);font-family:var(--mono)}
+.grp.math{color:var(--s7)}
+button.mini.fxbtn{color:var(--ink-2)}
+button.mini.fxbtn:hover{color:#fff}
 .u-select{background:rgba(200,16,46,.16)}
 .u-cursor-x,.u-cursor-y{border-color:rgba(255,255,255,.32)!important}
 .u-axis{color:var(--ink-3)}
@@ -258,6 +325,64 @@ button.linky{background:none;border:0;color:var(--s1);cursor:pointer;padding:0;
 .modal .form{max-width:none}
 button.btn.danger{color:#f0b7c0;border-color:var(--brand-dim)}
 button.btn.danger:hover{background:#2a1417;border-color:var(--brand)}
+
+/* ---------- math channel editor ---------------------------------------------------- */
+.modal-back.mx{animation:fade-in .14s}
+.modal-back.mx.out{opacity:0;transition:opacity .12s}
+.mx .modal{width:min(660px,100%);max-height:86vh;animation:pop-in .18s var(--ease)}
+@keyframes pop-in{from{opacity:0;transform:translateY(8px) scale(.985)}}
+.mx-badge{font:italic 600 17px/1 Georgia,serif;color:var(--s7);margin-right:8px}
+.mx-row{display:flex;gap:10px}
+.mx-f{display:flex;flex-direction:column;gap:5px;margin-bottom:10px}
+.mx-f>span{color:var(--ink-3);font-size:10.5px;text-transform:uppercase;letter-spacing:.7px}
+.mx-name{flex:1}
+.mx-unit{flex:0 0 120px}
+.mx-ed{position:relative}
+.mx textarea{width:100%;resize:vertical;min-height:76px;background:#121211;
+  border:1px solid var(--line);border-radius:8px;padding:9px 11px;
+  font:13px/1.55 var(--mono);color:var(--ink)}
+.mx textarea:focus{outline:none;border-color:#5a5a53}
+.mx textarea[aria-invalid=true]{border-color:var(--brand-dim)}
+.mx-ac{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:5;max-height:240px;
+  overflow:auto;background:var(--surface-2);border:1px solid #4a4a44;border-radius:8px;
+  padding:4px;box-shadow:0 14px 34px rgba(0,0,0,.55)}
+.mx-it{display:flex;align-items:center;gap:9px;padding:5px 8px;border-radius:5px;
+  cursor:pointer;font-size:12.5px}
+.mx-it:hover{background:#2e2e2b}
+.mx-it.on{background:#34342f;box-shadow:inset 2px 0 var(--brand)}
+.mx-kind{flex:0 0 26px;text-align:center;font:600 11px var(--mono);color:var(--s1)}
+.mx-kind.k-fn{color:var(--s4)}
+.mx-kind.k-k{color:var(--s3)}
+.mx-lb{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mx-lb b{color:#fff;text-decoration:underline;text-decoration-color:var(--brand);
+  text-underline-offset:3px}
+.mx-hint{color:var(--ink-3);font:10.5px var(--mono);white-space:nowrap}
+.mx-msg{min-height:20px;font-size:12px;margin:-2px 0 8px}
+.mx-msg .bad,.mx-stats .bad{color:#f3a5b1}
+.mx .dim{color:var(--ink-3)}
+.mx-where{margin:6px 0 0;padding:6px 9px;background:#121211;border-radius:6px;
+  font:12px/1.5 var(--mono);white-space:pre-wrap;word-break:break-all;color:var(--ink-2)}
+.mx-where mark{background:rgba(200,16,46,.35);color:#fff;border-radius:2px;
+  box-shadow:0 2px 0 var(--brand)}
+.mx-prev{border:1px solid var(--line);border-radius:8px;background:#121211;
+  padding:6px 8px 7px;margin-bottom:10px}
+.mx-prev canvas{display:block;width:100%;height:64px}
+.mx-stats{display:flex;gap:16px;flex-wrap:wrap;font:11.5px var(--mono);color:var(--ink-2);
+  min-height:17px;margin-top:4px}
+.mx-stats .warnish{color:var(--s4)}
+.mx-ref{margin-bottom:12px;font-size:12px}
+.mx-ref summary{cursor:pointer;color:var(--ink-3);font-size:11.5px;user-select:none}
+.mx-ref summary:hover{color:var(--ink-2)}
+.mx-syn{color:var(--ink-3);line-height:1.9;margin:8px 0}
+.mx code{font:11.5px var(--mono);color:var(--ink-2);background:var(--surface-2);
+  border-radius:4px;padding:1px 5px}
+.mx-fns{display:flex;flex-wrap:wrap;gap:5px}
+.mx-chip{font:11px var(--mono);padding:3px 7px;border-radius:5px;color:var(--ink-2)}
+.mx-foot{display:flex;align-items:center;gap:8px}
+.mx-foot .sp{flex:1}
+.mx-kbd{color:var(--ink-3);font-size:11px;margin-right:4px}
+@media (max-width:560px){ .mx-row{flex-direction:column;gap:0} .mx-unit{flex:none}
+  .mx-kbd{display:none} }
 
 /* ---------- toolbar: pickers and menus ---------------------------------------------
    The bar used to be twelve buttons in a row plus a 230 px channel dropdown. View and

@@ -112,8 +112,9 @@ export default function Viewer({
                 <div className="row">
                   <span>Arrangement</span>
                   <span className="seg">
-                    <button data-cols="1">Rows</button>
-                    <button data-cols="2" className="on">Tile</button>
+                    <button data-cols="1" title="one chart per row">Rows</button>
+                    <button data-cols="2" className="on" title="two columns">2 up</button>
+                    <button data-cols="3" title="three columns">3 up</button>
                   </span>
                 </div>
                 <div className="row">

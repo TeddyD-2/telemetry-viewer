@@ -24,13 +24,38 @@ at 20 Hz), but nothing in it is specific to that file.
   2 laps to 40, at 5–50 Hz, plus a figure-eight that crosses itself. Click a lap to zoom to it, tick it to overlay it.
   If it picks the wrong start/finish, click anywhere on the trace in **Track** to move the line
   and everything re-times.
-- **Traces.** Up to 8 channels, tiled two-up by default, drawn with
-  [uPlot](https://github.com/leeoniya/uPlot) — canvas, ~45 KB, built for long ordered
-  series. Drag to zoom, wheel to zoom about the pointer, double-click to reset; the cursor
-  is synchronised across every chart. **Drag one chart onto another to overlay them**, which
-  is how brake pressure goes under speed; merged channels keep independent vertical scales,
-  because bar and km/h have no shared axis. Line weight, chart height and rows-vs-tiles are
-  on the toolbar.
+- **Traces.** Up to 24 channels, two-up by default (rows, two or three columns under
+  Layout), drawn with [uPlot](https://github.com/leeoniya/uPlot) — canvas, ~45 KB, built
+  for long ordered series. Drag to zoom, wheel to zoom about the pointer, double-click to
+  reset; the cursor is synchronised across every chart. Line weight and default chart height
+  are on the toolbar; drag a chart's bottom edge to size that chart alone.
+
+  **Arrange by dragging a chart's header.** Release on the middle of another chart to
+  overlay the two — how brake pressure goes under speed; merged channels keep independent
+  vertical scales, because bar and km/h have no shared axis. Release near an edge, where a
+  red marker shows, to move it there. In a merged chart, dragging one channel's name pulls
+  just that channel out. Sidebar rows drag straight onto the stack the same way. Escape, or
+  releasing anywhere else, puts it back.
+
+  Charts are keyed by the channels they hold, so a change keeps every chart it did not touch:
+  heights and the scroll position survive, and the rest slide to their new places rather than
+  the whole stack being rebuilt.
+- **Math channels.** A new channel written as an expression over the others, as in RS3:
+  `"GPS Speed" / 3.6`, `smooth(deriv("GPS Speed" / 3.6), 0.25) / g`,
+  `("Speed1" - "Speed2") / max("Speed1", 1) * 100`. **+ ƒ Math** in any channel panel opens
+  the editor, which completes channel names, points at the exact characters of any error,
+  and previews the result over the whole session before it is saved. Operators
+  `+ - * / % ^`, comparisons and `&& || !` (giving 1/0), `cond ? a : b`; functions
+  `abs sqrt pow exp ln log10 min max clamp hypot round floor ceil sign`, trig, `if`, `isnan`,
+  and the ones that need a whole column — `deriv` (per second), `integ`, `smooth(x, s)`,
+  `delay(x, s)`. Constants `pi e g`, and `time` and `dist`.
+
+  A math channel is a channel like any other: plot it, colour the map by it, histogram it,
+  export it, use it in another math channel. Definitions are kept in the browser and applied
+  to every session opened, since "wheel slip" is written once per car, not once per file; one
+  whose inputs a file lacks stays listed with its error. They are not uploaded with a session
+  or shared with the team. `npm run check:math` tests the expression language, including
+  against the real file.
 
   The track map and the g–g diagram stay hand-rolled canvas: they are x/y point clouds, not
   time series, which is not what uPlot is for.
