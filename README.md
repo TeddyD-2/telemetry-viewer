@@ -105,8 +105,8 @@ at 20 Hz), but nothing in it is specific to that file.
   A lap's colour belongs to the lap, not to its position in the selection: unticking one lap
   leaves the others' colours alone. (Indexing the palette by "which of the ticked laps is this"
   is the easy version and it repaints every lap after the one you removed, which quietly
-  invalidates what you'd just learned.) Capped at 8 overlaid laps -- past the fixed hue order
-  there is no 9th colour that stays distinguishable under colour-vision deficiency.
+  invalidates what you'd just learned.) Up to 24 laps can be ticked: the first eight get the
+  eight distinct hues, and later ones lighter versions of them.
 - **Export** the current view as PNG (laid out as on screen), the visible window and plotted
   channels as CSV, or any single chart's PNG/CSV from its settings.
 - **A sidebar that follows the view.** Every panel collapses, and each view opens only the
