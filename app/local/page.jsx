@@ -18,7 +18,7 @@ export default function LocalPage(){
       </Link>}
       actions={<>
         <span className="by">local file · nothing is uploaded</span>
-        <Link className="btn" href="/upload">Share this session</Link>
+        <Link className="btn" href="/upload"><span className="t">Share this session</span></Link>
       </>}
     />
   );

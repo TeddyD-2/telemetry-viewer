@@ -6,11 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "check": "node scripts/check-datasets.mjs && node scripts/check-laps.mjs && node scripts/check-session-cache.mjs && node scripts/check-math.mjs",
+    "check": "node scripts/check-datasets.mjs && node scripts/check-laps.mjs && node scripts/check-session-cache.mjs && node scripts/check-math.mjs && node scripts/check-analysis.mjs",
     "check:db": "node scripts/check-datasets.mjs",
     "check:cache": "node scripts/check-session-cache.mjs",
     "check:laps": "node scripts/check-laps.mjs",
-    "check:math": "node scripts/check-math.mjs"
+    "check:math": "node scripts/check-math.mjs",
+    "check:analysis": "node scripts/check-analysis.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

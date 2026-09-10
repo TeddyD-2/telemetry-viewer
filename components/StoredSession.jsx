@@ -73,6 +73,7 @@ export default function StoredSession({ dataset }){
         source={{ kind: 'stored', binUrl: d.binUrl, title: d.title }}
         title={d.title}
         roles={d.roles}
+        datasetId={d.id}
         onLoad={onLoad}
         showOpen={false}
         back={<Link className="back" href="/" title="Library" aria-label="Library">
@@ -89,12 +90,12 @@ export default function StoredSession({ dataset }){
           {canSaveRoles && (
             <button className="btn primary" onClick={saveRoles}
                     title="Store these channel roles on the session so nobody else is asked">
-              Save channel choices
+              <span className="t">Save channel choices</span>
             </button>
           )}
-          <button className="btn" onClick={() => setEditing(true)}>Edit details</button>
+          <button className="btn" onClick={() => setEditing(true)}><span className="t">Edit details</span></button>
           <a className="btn" href={d.csvUrl} download={d.csvName || 'session.csv'}
-             title={`Download the original CSV (${fmtBytes(d.csvBytes)})`}>CSV</a>
+             title={`Download the original CSV (${fmtBytes(d.csvBytes)})`}><span className="t">CSV</span></a>
         </>}
       />
 

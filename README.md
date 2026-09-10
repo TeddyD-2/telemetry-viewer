@@ -24,11 +24,44 @@ at 20 Hz), but nothing in it is specific to that file.
   2 laps to 40, at 5–50 Hz, plus a figure-eight that crosses itself. Click a lap to zoom to it, tick it to overlay it.
   If it picks the wrong start/finish, click anywhere on the trace in **Track** to move the line
   and everything re-times.
-- **Traces.** Up to 24 channels, two-up by default (rows, two or three columns under
-  Layout), drawn with [uPlot](https://github.com/leeoniya/uPlot) — canvas, ~45 KB, built
-  for long ordered series. Drag to zoom, wheel to zoom about the pointer, double-click to
-  reset; the cursor is synchronised across every chart. Line weight and default chart height
-  are on the toolbar; drag a chart's bottom edge to size that chart alone.
+- **Two views.** **Charts** is the plotting workspace (what used to be Traces, with Analysis
+  folded in). **Lap analysis** is the track map beside the lap comparison, with the lap and
+  sector table underneath (what used to be Track and Compare).
+- **Charts.** Up to 24 channels across any number of charts, two-up by default (rows, two or
+  three columns under Layout), drawn with [uPlot](https://github.com/leeoniya/uPlot) —
+  canvas, ~45 KB, built for long ordered series. Drag to zoom, wheel to zoom about the
+  pointer, double-click to reset; the cursor is synchronised across every chart. Drag a
+  chart's bottom edge to size that chart alone.
+
+  **+ Chart** adds a chart of any kind, and each chart's settings button changes it:
+  - *Line* — x axis (time, distance, or follow the toolbar), style (line, step, points,
+    area), y scale (auto, from zero, fixed range, logarithmic; wheel over the y axis zooms
+    it), merged channels on their own scales with an axis each side or on one shared scale,
+    reference lines, lap start lines, min/avg/max of the zoom window in the header.
+  - *XY scatter* — any channel against any other, coloured by a third, over the zoom window
+    or the whole session, with a linear, quadratic or cubic trend line and its R². Box-zoom.
+    Equal aspect and g rings make it the g–g diagram, which **+ Chart** also offers directly.
+  - *Histogram* — bins, % of samples / seconds / count, cumulative; mean and p5/p95 marked.
+  - *Spectrum* — amplitude by Welch's method (Hann, 50% overlap), segment length and log
+    axes selectable. What a damper's body mode looks like.
+  - *Statistics* — min, max, mean, median, SD, RMS, p5, p95, time integral per channel, or
+    the same broken down per lap.
+
+  Each chart exports its own PNG or CSV. **M** (or the Marker button) drops a marker at the
+  cursor; every readout then shows its difference from it, and the header shows Δt and Δd.
+- **Comparing sessions.** **+ Add session to compare** in the Sessions panel opens another
+  session alongside this one — from the team library, or a CSV on this computer (parsed
+  locally, not uploaded). Every chart overlays the same channel from it, lighter and dashed;
+  math channels are evaluated on it too. Its laps join the Laps panel and can be ticked in
+  Lap analysis next to today's, with delta-t between them. **shift** slides it along the x
+  axis and **align best laps** lines the two best laps up.
+
+  Laps from the imported session are timed from *this* session's start/finish line, and
+  every lap boundary is interpolated to where the car actually crossed that line rather
+  than taken at the nearest sample. Without that a 20 Hz logger puts the two sessions' lap
+  starts up to 1.5 m apart, which is a quarter of a second of delta-t through a slow corner
+  that is not really there. `npm run check:analysis` imports the Michigan run against a
+  copy of itself with nine minutes cut off and checks delta-t stays at zero.
 
   **Arrange by dragging a chart's header.** Release on the middle of another chart to
   overlay the two — how brake pressure goes under speed; merged channels keep independent
@@ -57,26 +90,29 @@ at 20 Hz), but nothing in it is specific to that file.
   or shared with the team. `npm run check:math` tests the expression language, including
   against the real file.
 
-  The track map and the g–g diagram stay hand-rolled canvas: they are x/y point clouds, not
-  time series, which is not what uPlot is for.
-- **Compare.** The same channel over several laps, aligned on distance into the lap, plus a
-  **delta-t** chart underneath showing where each lap gains or loses against a reference. This
-  is the plot that answers "where did the time actually go". Both carry a legend and a
-  crosshair readout of every lap's value at the cursor.
+  The XY scatter draws its own points onto a uPlot frame, since a point cloud is not an
+  ordered series; the track map stays hand-rolled canvas.
+- **Lap analysis.** The GPS map, coloured by any channel, beside the ticked laps' channels
+  aligned on distance into the lap and a **delta-t** chart showing where each lap gains or
+  loses against the reference. This is the view that answers "where did the time actually
+  go", and the two halves are linked: hovering a chart puts a dot on the map for every lap at
+  that distance, and hovering the map moves the charts. Click the map to move the
+  start/finish line. Underneath, a table of the ticked laps: time, Δ to the reference,
+  sector times (2–6 equal fractions of each lap's distance, best in each column marked),
+  speed range, the compared channels' averages, and an *Ideal* lap per session built from
+  its best sectors. Click a row to make it the reference.
 
   A lap's colour belongs to the lap, not to its position in the selection: unticking one lap
   leaves the others' colours alone. (Indexing the palette by "which of the ticked laps is this"
   is the easy version and it repaints every lap after the one you removed, which quietly
   invalidates what you'd just learned.) Capped at 8 overlaid laps -- past the fixed hue order
   there is no 9th colour that stays distinguishable under colour-vision deficiency.
-- **Track.** GPS map coloured by any channel, cursor linked to every other view.
-- **Analysis.** g–g diagram, histogram, and min/max/mean/SD over whatever window is in view.
-- **Export** the current view as PNG, or the visible window and selected channels as CSV.
-- **A sidebar that follows the view.** Every panel collapses, and each mode opens only the
-  one it is about: Traces is a channel picker and nothing else, Compare is laps and one
-  channel, Track and Analysis each want a single channel. The rest stay in the column one
-  click away rather than crowding the one that matters. Traces starts with nothing plotted
-  — no five channels are right for everyone, and picking some just means clearing them.
+- **Export** the current view as PNG (laid out as on screen), the visible window and plotted
+  channels as CSV, or any single chart's PNG/CSV from its settings.
+- **A sidebar that follows the view.** Every panel collapses, and each view opens only the
+  ones it is about: Charts is sessions and a channel picker, Lap analysis is sessions, laps
+  and the channels to compare. Charts starts with nothing plotted — no five channels are
+  right for everyone, and picking some just means clearing them.
 - **Channel roles.** Speed, latitude, longitude, distance and the two g channels are matched
   by name once. Nothing is re-guessed per view, so lap detection, the distance axis and the
   cursor readout always agree. The panel stays collapsed while the matching holds — on a

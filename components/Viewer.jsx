@@ -13,7 +13,7 @@ import { fetchParsed } from '../lib/viewer/binary.js';
      {kind:'stored', binUrl, title}     download a parsed session and open it
      {kind:'handoff'}                   opened elsewhere; onMount hands the session over  */
 export default function Viewer({
-  source = { kind: 'local' }, title, roles, onLoad, onMount,
+  source = { kind: 'local' }, title, roles, onLoad, onMount, datasetId,
   /* The page owns what sits at each end of the bar: where 'back' goes, and which
      actions this session has. The middle -- name, metadata, live cursor readout --
      belongs to the viewer, which is the only thing that knows it. */
@@ -22,7 +22,7 @@ export default function Viewer({
   const rootRef = useRef(null);
 
   useEffect(() => {
-    const api = createViewer(rootRef.current, { title, roles });
+    const api = createViewer(rootRef.current, { title, roles, datasetId });
     let dead = false;
     const off = [];
 
@@ -71,7 +71,7 @@ export default function Viewer({
         <div id="cursorout" />
         <div className="acts">
           {actions}
-          <button id="loadbtn" className="btn" hidden={!showOpen}>Open CSV&hellip;</button>
+          <button id="loadbtn" className="btn" hidden={!showOpen}><span className="t">Open CSV&hellip;</span></button>
         </div>
         <input type="file" id="file" accept=".csv" hidden />
       </div>
@@ -84,16 +84,14 @@ export default function Viewer({
 
         <div id="content">
           <div id="bar" style={{ display: 'none' }}>
-            <label className="pick">
-              <span>View</span>
-              <select id="modesel">
-                <option value="traces">Traces</option>
-                <option value="compare">Compare</option>
-                <option value="track">Track</option>
-                <option value="analysis">Analysis</option>
-              </select>
-            </label>
-            <label className="pick">
+            {/* Two views, named for what they are for: Charts is the workspace of plots
+                (what was Traces, with Analysis folded in), Lap analysis is the track and
+                the lap comparison side by side (what was Track and Compare). */}
+            <div className="seg tabs" id="modetabs" role="tablist" aria-label="View">
+              <button data-mode="charts" className="on" role="tab" aria-selected="true">Charts</button>
+              <button data-mode="laps" role="tab" aria-selected="false">Lap analysis</button>
+            </div>
+            <label className="pick" id="xpick">
               <span>X axis</span>
               <select id="xsel">
                 <option value="time">Time</option>
@@ -101,10 +99,24 @@ export default function Viewer({
               </select>
             </label>
 
+            <div className="menu" id="addmenu">
+              <button className="btn" data-open aria-haspopup="true" aria-expanded="false">
+                + Chart <span className="caret">▾</span>
+              </button>
+              <div className="pop addpop" hidden>
+                <button className="item" data-add="line"><b>Line</b><span>channels against time or distance</span></button>
+                <button className="item" data-add="xy"><b>XY scatter</b><span>one channel against another, with trend lines</span></button>
+                <button className="item" data-add="gg"><b>g–g diagram</b><span>lateral against inline g, with rings</span></button>
+                <button className="item" data-add="hist"><b>Histogram</b><span>how the samples are distributed</span></button>
+                <button className="item" data-add="fft"><b>Spectrum</b><span>frequency content, by FFT</span></button>
+                <button className="item" data-add="stats"><b>Statistics</b><span>min, max, mean, percentiles, per lap</span></button>
+              </div>
+            </div>
+
             {/* Chart appearance is a preference you set once, not a control you reach for
                 mid-session, so it folds into a menu instead of spending six slots on the
                 bar. */}
-            <div className="menu" id="layoutmenu" hidden>
+            <div className="menu" id="layoutmenu">
               <button className="btn" data-open aria-haspopup="true" aria-expanded="false">
                 Layout <span className="caret">▾</span>
               </button>
@@ -135,6 +147,8 @@ export default function Viewer({
               </div>
             </div>
 
+            <button id="marker" className="btn"
+                    title="Marker at the cursor (M): readouts show the difference from it">Marker</button>
             <button id="zoomlap" className="btn">Zoom to lap</button>
             <button id="reset" className="btn">Reset zoom</button>
             <div className="sp" style={{ flex: 1 }} />
