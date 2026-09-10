@@ -433,6 +433,33 @@ button.btn.danger:hover{background:#2a1417;border-color:var(--brand)}
 #top .back{display:inline-flex;align-items:center;justify-content:center;height:28px;
   width:28px;padding:0}
 
+/* ---------- channel settings and notes ---------------------------------------------- */
+.ch .cg{background:none;border:0;padding:1px 3px;color:var(--ink-3);opacity:0;line-height:1;
+  display:inline-flex;border-radius:4px}
+.ch:hover .cg,.ch .cg:focus-visible{opacity:1}
+.ch .cg:hover{color:#fff;background:#34342f}
+.ch .nt{width:6px;height:6px;border-radius:50%;background:var(--s4);flex:none;margin-left:-2px}
+.ch.team .nm::after{content:'team';margin-left:6px;font:600 9px/1 system-ui;letter-spacing:.5px;
+  text-transform:uppercase;color:var(--s7);border:1px solid #4a4580;border-radius:3px;
+  padding:1px 3px;vertical-align:1px}
+.chs .modal{width:min(540px,100%)}
+.chs-facts{color:var(--ink-3);font:11.5px var(--mono);margin:-6px 0 12px}
+.chs-math{border:1px solid var(--line);border-radius:8px;background:#121211;padding:9px 11px;
+  margin-bottom:12px}
+.chs-expr{display:flex;align-items:baseline;gap:4px}
+.chs-expr code{background:none;padding:0;white-space:pre-wrap;word-break:break-word}
+.chs-share{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:12px;color:var(--ink-2);
+  flex-wrap:wrap}
+.chs-share .sp{flex:1}
+.chs-share .btn{padding:4px 10px;font-size:12px}
+.chs textarea{width:100%;resize:vertical;min-height:84px;background:#121211;border:1px solid var(--line);
+  border-radius:8px;padding:9px 11px;font:13px/1.5 system-ui,sans-serif;color:var(--ink)}
+.chs textarea:focus{outline:none;border-color:#5a5a53}
+.chs-cap{color:var(--ink-3);font-size:11.5px;margin:-4px 0 8px}
+.mx-share{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12px;cursor:pointer;
+  margin-left:4px}
+.mx-share input{width:auto;margin:0}
+
 /* ---------- views and the toolbar ---------------------------------------------------- */
 #bar .tabs button{padding:5px 14px;font-weight:600;color:var(--ink-2)}
 #bar .tabs button.on{color:#fff}

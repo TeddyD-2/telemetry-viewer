@@ -34,6 +34,8 @@ at 20 Hz), but nothing in it is specific to that file.
   chart's bottom edge to size that chart alone.
 
   **+ Chart** adds a chart of any kind, and each chart's settings button changes it:
+  - *X axis* — any chart's X axis picker offers time, distance, or any channel. Picking a
+    channel makes it an XY chart, drawn as points or as a line joining samples in order.
   - *Line* — x axis (time, distance, or follow the toolbar), style (line, step, points,
     area), y scale (auto, from zero, fixed range, logarithmic; wheel over the y axis zooms
     it), merged channels on their own scales with an axis each side or on one shared scale,
@@ -84,11 +86,18 @@ at 20 Hz), but nothing in it is specific to that file.
   `delay(x, s)`. Constants `pi e g`, and `time` and `dist`.
 
   A math channel is a channel like any other: plot it, colour the map by it, histogram it,
-  export it, use it in another math channel. Definitions are kept in the browser and applied
-  to every session opened, since "wheel slip" is written once per car, not once per file; one
-  whose inputs a file lacks stays listed with its error. They are not uploaded with a session
-  or shared with the team. `npm run check:math` tests the expression language, including
-  against the real file.
+  export it, use it in another math channel. Definitions are applied to every session opened,
+  since "wheel slip" is written once per car, not once per file; one whose inputs a file
+  lacks stays listed with its error. A new one is personal, kept in the browser that wrote it.
+  Tick **Share with the whole team** in the editor (or **Share with team** in the channel's
+  settings) and it is stored in the database and reaches everyone signed in, tagged *team*.
+  Editing a shared channel edits it for everyone; deleting one asks first. The last team list
+  is cached, so shared channels still work offline. `npm run check:math` tests the expression
+  language, including against the real file.
+- **Channel notes.** The settings button on any channel row holds a note for the whole team —
+  "reads about 26% high", "use #2 on 2025 exports". Notes are keyed by channel name, so they
+  follow the channel onto every session, and show as the channel's tooltip in the sidebar
+  and on chart headers, with who wrote them. A dot marks channels that have one.
 
   The XY scatter draws its own points onto a uPlot frame, since a point cloud is not an
   ordered series; the track map stays hand-rolled canvas.

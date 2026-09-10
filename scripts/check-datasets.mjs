@@ -11,6 +11,7 @@
 import { PGlite } from '@electric-sql/pglite';
 import {
   SCHEMA, listDatasets, getDataset, insertDataset, updateDataset, deleteDataset, rowToDataset,
+  listNotes, setNote, rowToNote, listTeamMath, saveTeamMath, deleteTeamMath, rowToMath,
 } from '../lib/datasets.js';
 
 const db = new PGlite();
@@ -124,6 +125,36 @@ const wide = await insertDataset(sql, {
   description: 'x'.repeat(2000), title: 'y'.repeat(200),
 });
 check(wide.description.length === 2000 && wide.title.length === 200, 'the longest allowed text fits');
+
+/* ---- channel notes ---- */
+const n1 = await setNote(sql, 'LateralAcc', 'reads ~26% high against v * yaw rate', ME);
+check(n1.note.startsWith('reads') && n1.updated_by === ME, 'a note is stored with its author');
+const n2 = await setNote(sql, 'LateralAcc', 'reads ~26% high — recalibrated for Sunday', THEM);
+check(n2.updated_by === THEM && n2.note.endsWith('Sunday'), 'writing again replaces the note and its author');
+await setNote(sql, 'GPS Speed', 'use #2 on 2025 exports', ME);
+check((await listNotes(sql)).length === 2, 'one row per channel');
+check((await setNote(sql, 'GPS Speed', '', ME)) === null && (await listNotes(sql)).length === 1,
+  'clearing the text deletes the note');
+check(rowToNote(n2).updatedBy === THEM && 'updatedAt' in rowToNote(n2), 'notes reach the browser in camelCase');
+
+/* ---- team math channels ---- */
+const m1 = await saveTeamMath(sql, { name: 'Wheel slip', unit: '%', expr: '("Speed1" - "Speed2") / max("Speed1", 1) * 100' }, ME);
+check(m1.created_by === ME && m1.unit === '%', 'a math channel is shared with its author');
+const m2 = await saveTeamMath(sql, { name: 'Wheel slip', unit: '%', expr: '"Speed1" - "Speed2"' }, THEM);
+check(m2.created_by === ME && m2.updated_by === THEM && m2.expr === '"Speed1" - "Speed2"',
+  'sharing an edit updates it and keeps the original author');
+const m3 = await saveTeamMath(sql, { name: 'Slip ratio', unit: '%', expr: m2.expr, from: 'Wheel slip' }, THEM);
+const all = await listTeamMath(sql);
+check(m3.name === 'Slip ratio' && all.length === 1 && all[0].created_by === ME, 'a rename moves the row rather than adding one');
+await saveTeamMath(sql, { name: 'Long g', unit: 'g', expr: 'deriv("GPS Speed" / 3.6) / g' }, ME);
+let conflict = null;
+try { await saveTeamMath(sql, { name: 'Long g', unit: '', expr: '1', from: 'Slip ratio' }, ME); }
+catch (err){ conflict = err; }
+check(conflict && conflict.status === 409 && (await listTeamMath(sql)).length === 2,
+  'renaming onto a name the team already uses is refused, and nothing is lost');
+await deleteTeamMath(sql, 'Long g');
+check((await listTeamMath(sql)).map(r => r.name).join() === 'Slip ratio', 'delete removes one definition');
+check(rowToMath(m3).createdBy === ME, 'math channels reach the browser in camelCase');
 
 await db.close();
 console.log(failures ? `\n${failures} check(s) failed` : '\nall checks passed');
