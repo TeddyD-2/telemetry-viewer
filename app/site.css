@@ -20,8 +20,10 @@
 }
 a.btn,button.btn{display:inline-block;background:var(--surface-2);border:1px solid var(--line);
   border-radius:6px;padding:6px 12px;cursor:pointer;text-decoration:none;color:var(--ink);
-  font:inherit;line-height:1.45}
+  font:inherit;line-height:1.45;
+  transition:background-color .12s ease,border-color .12s ease,transform .16s var(--ease-out)}
 a.btn:hover,button.btn:hover{background:#2c2c2a;border-color:#4a4a44}
+a.btn:active{transform:scale(.97)}
 a.btn.primary,button.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
 a.btn.primary:hover,button.btn.primary:hover{background:#a90d26;border-color:#a90d26}
 button.btn:disabled{opacity:.45;cursor:default}
@@ -41,8 +43,16 @@ h2{font-size:13px;font-weight:600;margin:30px 0 10px;color:var(--ink-2)}
 .filters input[type=search]{max-width:280px}
 .cards{display:grid;gap:10px}
 .card{display:block;background:var(--surface);border:1px solid var(--line);border-radius:10px;
-  padding:14px 16px;text-decoration:none;color:inherit}
+  padding:14px 16px;text-decoration:none;color:inherit;
+  transition:border-color .15s ease,background-color .15s ease}
 .card:hover{border-color:#4a4a44;background:#1f1f1e}
+/* The list settles in on arrival rather than landing as one block: 40 ms apart, capped
+   at the first eight so a long library is not kept waiting. Only on arrival -- cards that
+   come back as a search is edited appear at once, since that is typing. */
+.cards.intro>.card{animation:card-in .24s var(--ease-out) backwards;
+  animation-delay:calc(min(var(--i,0),8) * 40ms)}
+@keyframes card-in{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){ .cards.intro>.card{animation-name:fade-in} }
 .card .row1{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .card .name{font-weight:600;font-size:14px}
 .card .desc{color:var(--ink-2);font-size:12.5px;margin:5px 0 0;white-space:pre-wrap}
@@ -93,7 +103,8 @@ table.setup code{font-family:var(--mono);color:var(--ink)}
 .step.done .dot{background:#199e70}
 .step.done{color:var(--ink-2)}
 .bar{height:5px;background:var(--surface-2);border-radius:3px;overflow:hidden;margin-top:3px}
-.bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .15s}
+.bar i{display:block;height:100%;width:100%;background:var(--brand);transform:scaleX(0);
+  transform-origin:left;transition:transform .15s linear}
 
 /* ---------- login ---------- */
 .login{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px}

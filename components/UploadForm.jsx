@@ -131,7 +131,7 @@ export default function UploadForm({ me }){
       {busy && (
         <div className="steps">
           <div className="step run"><span className="dot" />{step}</div>
-          <div className="bar"><i style={{ width: `${pct}%` }} /></div>
+          <div className="bar"><i style={{ transform: `scaleX(${pct / 100})` }} /></div>
         </div>
       )}
 

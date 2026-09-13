@@ -35,10 +35,14 @@ export default function Viewer({
     api.loadParsed = (m, n) => { origLoadParsed(m, n); announce(); };
 
     if (source.kind === 'stored'){
+      /* Aborted on unmount -- see fetchParsed for why a download must not outlive its
+         viewer. */
+      const ac = new AbortController();
+      off.push(() => ac.abort());
       api.busy('downloading session…', 0);
       fetchParsed(source.binUrl, pct => {
         if (!dead) api.busy('downloading session…', pct);
-      })
+      }, ac.signal)
         .then(m => { if (!dead) api.loadParsed(m, source.title || 'session'); })
         .catch(err => { if (!dead) api.failed(String(err && err.message || err)); });
     }

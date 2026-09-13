@@ -9,6 +9,7 @@ export default function Library(){
   const [error, setError] = useState('');
   const [q, setQ] = useState('');
   const [scope, setScope] = useState('all');
+  const [intro, setIntro] = useState(true);
 
   useEffect(() => {
     fetch('/api/datasets')
@@ -16,6 +17,14 @@ export default function Library(){
       .then(b => (b.error ? setError(b.error) : setDatasets(b.datasets)))
       .catch(e => setError(String(e.message || e)));
   }, []);
+
+  /* The cards animate in once, when the list arrives; after that a search re-rendering
+     them should not replay it. */
+  useEffect(() => {
+    if (!datasets) return;
+    const t = setTimeout(() => setIntro(false), 800);
+    return () => clearTimeout(t);
+  }, [datasets]);
 
   const shown = useMemo(() => {
     if (!datasets) return [];
@@ -54,18 +63,18 @@ export default function Library(){
             : 'No sessions match that search.'}
         </div>
       ) : (
-        <div className="cards">
-          {shown.map(d => <Card key={d.id} d={d} />)}
+        <div className={intro ? 'cards intro' : 'cards'}>
+          {shown.map((d, i) => <Card key={d.id} d={d} i={i} />)}
         </div>
       )}
     </>
   );
 }
 
-function Card({ d }){
+function Card({ d, i }){
   const mine = d.mine;
   return (
-    <div className="card">
+    <div className="card" style={{ '--i': i }}>
       <div className="row1">
         <span className="name">{d.title}</span>
         {d.listed
